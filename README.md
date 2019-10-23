@@ -31,5 +31,5 @@ middleware library to work:
 
 ### Additional Information
 * [Enterprise Security RELEASE.md](./RELEASE.md)
-* [Enterprise Security API reference guide](./docs/api_reference_manual.html)
+* [Enterprise Security API reference guide](https://cypresssemiconductorco.github.io/enterprise-security/api_reference_manual/html/index.html)
 * [Enterprise Security library version](./version.txt)
