@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Cypress Enterprise Security Library: Enterprise security preprocessors definations</title>
+<title>Cypress Enterprise Security Library: Macros</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -81,24 +81,83 @@ $(document).ready(function(){initNavTree('group__enterprise__security__defines.h
 
 <div class="header">
   <div class="summary">
+<a href="#groups">API Reference</a> &#124;
 <a href="#define-members">Macros</a>  </div>
   <div class="headertitle">
-<div class="title">Enterprise security preprocessors definations<div class="ingroups"><a class="el" href="group__enterprise__security.html">Enterprise security library</a></div></div>  </div>
+<div class="title">Macros<div class="ingroups"><a class="el" href="group__enterprise__security.html">Enterprise Security library</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 <a name="details" id="details"></a><h2 class="groupheader">General Description</h2>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
+API Reference</h2></td></tr>
+<tr class="memitem:group__enterprise__security__results"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__results.html">Enterprise Security results/error codes</a></td></tr>
+<tr class="memdesc:group__enterprise__security__results"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enterprise Security library APIs return results of type cy_rslt_t and consist of three parts: <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:ga051f883f2810baae2a1a19f0abb93503"><td class="memItemLeft" align="right" valign="top"><a id="ga051f883f2810baae2a1a19f0abb93503"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__defines.html#ga051f883f2810baae2a1a19f0abb93503">CY_SUPPLICANT_MAX_IDENTITY_LENGTH</a>&#160;&#160;&#160;( 32 )</td></tr>
-<tr class="memdesc:ga051f883f2810baae2a1a19f0abb93503"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum identity length supported. <br /></td></tr>
-<tr class="separator:ga051f883f2810baae2a1a19f0abb93503"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga55a492f7fbc7e848c6cf525349b66db2"><td class="memItemLeft" align="right" valign="top"><a id="ga55a492f7fbc7e848c6cf525349b66db2"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__defines.html#ga55a492f7fbc7e848c6cf525349b66db2">CY_SUPPLICANT_MAX_PASSWORD_LENGTH</a>&#160;&#160;&#160;( 64 )</td></tr>
-<tr class="memdesc:ga55a492f7fbc7e848c6cf525349b66db2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum password length to use. <br /></td></tr>
-<tr class="separator:ga55a492f7fbc7e848c6cf525349b66db2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1d23c3ac3b49042d3c1bc6792d21c283"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__defines.html#ga1d23c3ac3b49042d3c1bc6792d21c283">cy_enterprise_security_log_msg</a>(a,  b,  c, ...)</td></tr>
+<tr class="memdesc:ga1d23c3ac3b49042d3c1bc6792d21c283"><td class="mdescLeft">&#160;</td><td class="mdescRight">ENABLE_ENTERPRISE_SECURITY_LOGS.  <a href="#ga1d23c3ac3b49042d3c1bc6792d21c283">More...</a><br /></td></tr>
+<tr class="separator:ga1d23c3ac3b49042d3c1bc6792d21c283"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad4590579793e58d3e6e0bffc33d3c58b"><td class="memItemLeft" align="right" valign="top"><a id="gad4590579793e58d3e6e0bffc33d3c58b"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__defines.html#gad4590579793e58d3e6e0bffc33d3c58b">CY_ENTERPRISE_SECURITY_MAX_IDENTITY_LENGTH</a>&#160;&#160;&#160;( 32 )</td></tr>
+<tr class="memdesc:gad4590579793e58d3e6e0bffc33d3c58b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum identity length supported. <br /></td></tr>
+<tr class="separator:gad4590579793e58d3e6e0bffc33d3c58b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4f4ca2c5389d6e0ec34ef9e0bb50010b"><td class="memItemLeft" align="right" valign="top"><a id="ga4f4ca2c5389d6e0ec34ef9e0bb50010b"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__defines.html#ga4f4ca2c5389d6e0ec34ef9e0bb50010b">CY_ENTERPRISE_SECURITY_MAX_PASSWORD_LENGTH</a>&#160;&#160;&#160;( 64 )</td></tr>
+<tr class="memdesc:ga4f4ca2c5389d6e0ec34ef9e0bb50010b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum password length supported. <br /></td></tr>
+<tr class="separator:ga4f4ca2c5389d6e0ec34ef9e0bb50010b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5bf621d474d495281f7d5fc3a82272ce"><td class="memItemLeft" align="right" valign="top"><a id="ga5bf621d474d495281f7d5fc3a82272ce"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__defines.html#ga5bf621d474d495281f7d5fc3a82272ce">CY_ENTERPRISE_SECURITY_MAX_SSID_LENGTH</a>&#160;&#160;&#160;( 32 )</td></tr>
+<tr class="memdesc:ga5bf621d474d495281f7d5fc3a82272ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum SSID length supported. <br /></td></tr>
+<tr class="separator:ga5bf621d474d495281f7d5fc3a82272ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="ga1d23c3ac3b49042d3c1bc6792d21c283"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1d23c3ac3b49042d3c1bc6792d21c283">&#9670;&nbsp;</a></span>cy_enterprise_security_log_msg</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define cy_enterprise_security_log_msg</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">a, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">b, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">c, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>ENABLE_ENTERPRISE_SECURITY_LOGS. </p>
+<p>When defined, enables debug logs in the Enterprise Security library.</p>
+<p>The application must enable this flag and call <code>cy_log_init()</code> before calling these library APIs. </p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

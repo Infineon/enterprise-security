@@ -1,4 +1,4 @@
 var modules =
 [
-    [ "Enterprise security library", "group__enterprise__security.html", "group__enterprise__security" ]
+    [ "Enterprise Security library", "group__enterprise__security.html", "group__enterprise__security" ]
 ];

@@ -1,22 +1,20 @@
 var group__enterprise__security__struct =
 [
-    [ "phase2_t", "structphase2__t.html", [
-      [ "tunnel_auth_type", "structphase2__t.html#a90926b464d5e898df9c33f8250cffcc6", null ],
-      [ "inner_eap_type", "structphase2__t.html#a0aa09404d20d70ce265bb021e47adc19", null ],
-      [ "inner_identity", "structphase2__t.html#aaba527a0d9c6b8727bb11aacf347369a", null ],
-      [ "inner_password", "structphase2__t.html#aa22bf1cfc073adf65b8f810951179711", null ]
+    [ "cy_enterprise_security_phase2_params_t", "structcy__enterprise__security__phase2__params__t.html", [
+      [ "tunnel_auth_type", "structcy__enterprise__security__phase2__params__t.html#a86b303d7116a45643c23b8ccce7ea83e", null ],
+      [ "inner_eap_type", "structcy__enterprise__security__phase2__params__t.html#abfdfabd71c7653233ecfd33cb7399399", null ],
+      [ "inner_identity", "structcy__enterprise__security__phase2__params__t.html#afc80d33050a1ef087d08deb71e71c3ee", null ],
+      [ "inner_password", "structcy__enterprise__security__phase2__params__t.html#ade625f270e6890f5658ffed844517c08", null ]
     ] ],
-    [ "enterprise_security_parameters_t", "structenterprise__security__parameters__t.html", [
-      [ "ssid", "structenterprise__security__parameters__t.html#a854911b96c7ba27da9a02312c3b364ab", null ],
-      [ "eap_type", "structenterprise__security__parameters__t.html#a6447714833414b102874bd1df03d8dfe", null ],
-      [ "ca_cert", "structenterprise__security__parameters__t.html#addf039bcd19ab07a4f39ea680a742573", null ],
-      [ "client_cert", "structenterprise__security__parameters__t.html#a51021ebc9b0467a0c7a07cb17d24c35c", null ],
-      [ "client_key", "structenterprise__security__parameters__t.html#a2b160b5417d2168537502969e87685e3", null ],
-      [ "auth_type", "structenterprise__security__parameters__t.html#ad57108b99908b4e1965f007e71d79af0", null ],
-      [ "outer_eap_identity", "structenterprise__security__parameters__t.html#a9db679a85b29ee163733bdd9d8e2449a", null ],
-      [ "is_client_cert_required", "structenterprise__security__parameters__t.html#a166cadd3acf472ffe02a373afb2f9b57", null ],
-      [ "phase2", "structenterprise__security__parameters__t.html#aa1905a165712b69cb4bdb199ff9f617f", null ]
-    ] ],
-    [ "cy_supplicant_tunnel_auth_type_t", "group__enterprise__security__struct.html#gabdb6010b00dc6c0edb48cd9869240407", null ],
-    [ "cy_supplicant_eap_type_t", "group__enterprise__security__struct.html#ga40863f91bf0c78e07215003af841d4a7", null ]
+    [ "cy_enterprise_security_parameters_t", "structcy__enterprise__security__parameters__t.html", [
+      [ "ssid", "structcy__enterprise__security__parameters__t.html#a2869dbd2dba99d8c3f76e187c1d33719", null ],
+      [ "eap_type", "structcy__enterprise__security__parameters__t.html#a27effe5c70470c2ddd9721295fe9b142", null ],
+      [ "ca_cert", "structcy__enterprise__security__parameters__t.html#aae48d9bd5609815a9fe0865c58384bd6", null ],
+      [ "client_cert", "structcy__enterprise__security__parameters__t.html#a6a12f12fade4982427ff5669392cff4f", null ],
+      [ "client_key", "structcy__enterprise__security__parameters__t.html#ac8d3759d965c912dbc71dd038fe88c24", null ],
+      [ "auth_type", "structcy__enterprise__security__parameters__t.html#aa415fbc0e707d0f1d303acfeb5fe30d1", null ],
+      [ "outer_eap_identity", "structcy__enterprise__security__parameters__t.html#ab3cd260b31f1dd23b4cdfd8427e3993f", null ],
+      [ "is_client_cert_required", "structcy__enterprise__security__parameters__t.html#a2737b2e4d9a5e5000365d9eae457e4f8", null ],
+      [ "phase2", "structcy__enterprise__security__parameters__t.html#a5d0ed49c033c249dbe9fa6f0f0a54b44", null ]
+    ] ]
 ];

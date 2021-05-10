@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Cypress Enterprise Security Library: Enterprise security data structures</title>
+<title>Cypress Enterprise Security Library: Structures</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -81,73 +81,22 @@ $(document).ready(function(){initNavTree('group__enterprise__security__struct.ht
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#nested-classes">Data Structures</a>  </div>
   <div class="headertitle">
-<div class="title">Enterprise security data structures<div class="ingroups"><a class="el" href="group__enterprise__security.html">Enterprise security library</a></div></div>  </div>
+<div class="title">Structures<div class="ingroups"><a class="el" href="group__enterprise__security.html">Enterprise Security library</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 <a name="details" id="details"></a><h2 class="groupheader">General Description</h2>
-<p>Enterprise security data structures and type definitions. </p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structphase2__t.html">phase2_t</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enterprise security phase2 authenticaton parameters structure.  <a href="structphase2__t.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcy__enterprise__security__phase2__params__t.html">cy_enterprise_security_phase2_params_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Phase2 Parameters.  <a href="structcy__enterprise__security__phase2__params__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structenterprise__security__parameters__t.html">enterprise_security_parameters_t</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enterprise security parameters structure.  <a href="structenterprise__security__parameters__t.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcy__enterprise__security__parameters__t.html">cy_enterprise_security_parameters_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enterprise Security parameters.  <a href="structcy__enterprise__security__parameters__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:gabdb6010b00dc6c0edb48cd9869240407"><td class="memItemLeft" align="right" valign="top">typedef supplicant_tunnel_auth_type_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__struct.html#gabdb6010b00dc6c0edb48cd9869240407">cy_supplicant_tunnel_auth_type_t</a></td></tr>
-<tr class="memdesc:gabdb6010b00dc6c0edb48cd9869240407"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tunnel authentication type : Represents inner authentication protocol used.  <a href="#gabdb6010b00dc6c0edb48cd9869240407">More...</a><br /></td></tr>
-<tr class="separator:gabdb6010b00dc6c0edb48cd9869240407"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga40863f91bf0c78e07215003af841d4a7"><td class="memItemLeft" align="right" valign="top">typedef eap_type_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__struct.html#ga40863f91bf0c78e07215003af841d4a7">cy_supplicant_eap_type_t</a></td></tr>
-<tr class="memdesc:ga40863f91bf0c78e07215003af841d4a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Eap type : Represents Eap authentication type to use.  <a href="#ga40863f91bf0c78e07215003af841d4a7">More...</a><br /></td></tr>
-<tr class="separator:ga40863f91bf0c78e07215003af841d4a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="gabdb6010b00dc6c0edb48cd9869240407"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gabdb6010b00dc6c0edb48cd9869240407">&#9670;&nbsp;</a></span>cy_supplicant_tunnel_auth_type_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef supplicant_tunnel_auth_type_t <a class="el" href="group__enterprise__security__struct.html#gabdb6010b00dc6c0edb48cd9869240407">cy_supplicant_tunnel_auth_type_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Tunnel authentication type : Represents inner authentication protocol used. </p>
-<p>Lets say for example</p>
-<p><b> MSCHAPv2 : <em> CY_SUPPLICANT_TUNNEL_TYPE_MSCHAPV2 </em> </b></p>
-<p><b> EAP : <em> CY_SUPPLICANT_TUNNEL_TYPE_EAP </em> </b> </p>
-
-</div>
-</div>
-<a id="ga40863f91bf0c78e07215003af841d4a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga40863f91bf0c78e07215003af841d4a7">&#9670;&nbsp;</a></span>cy_supplicant_eap_type_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef eap_type_t <a class="el" href="group__enterprise__security__struct.html#ga40863f91bf0c78e07215003af841d4a7">cy_supplicant_eap_type_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Eap type : Represents Eap authentication type to use. </p>
-<p>Lets say for example</p>
-<p><b> EAP-TLS : <em> CY_SUPPLICANT_EAP_TYPE_TLS </em> </b></p>
-<p><b> PEAP : <em> CY_SUPPLICANT_EAP_TYPE_PEAP </em> </b></p>
-<p><b> EAP-TTLS : <em> CY_SUPPLICANT_EAP_TYPE_TTLS </em> </b> </p>
-
-</div>
-</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

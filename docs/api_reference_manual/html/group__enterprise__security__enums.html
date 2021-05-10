@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Cypress Enterprise Security Library: Enterprise security enumerated types</title>
+<title>Cypress Enterprise Security Library: Enumerated types</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -83,97 +83,216 @@ $(document).ready(function(){initNavTree('group__enterprise__security__enums.htm
   <div class="summary">
 <a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle">
-<div class="title">Enterprise security enumerated types<div class="ingroups"><a class="el" href="group__enterprise__security.html">Enterprise security library</a></div></div>  </div>
+<div class="title">Enumerated types<div class="ingroups"><a class="el" href="group__enterprise__security.html">Enterprise Security library</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 <a name="details" id="details"></a><h2 class="groupheader">General Description</h2>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:ga936e3d6d714eccd90dcaf8f08614616f"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__enums.html#ga936e3d6d714eccd90dcaf8f08614616f">cy_suppliant_status_t</a> { <br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa80602fc766e93bd2c8e2b6361c25472e">CY_SUPPLICANT_STATUS_JOIN_SUCCESS</a> = 0, 
+<tr class="memitem:gab6bb1148b5dbe35ea6bdfbfd88b969de"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__enums.html#gab6bb1148b5dbe35ea6bdfbfd88b969de">cy_enterprise_security_auth_t</a> { <br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggab6bb1148b5dbe35ea6bdfbfd88b969deae39d2cb5f54057156a5aa01003a5ff5d">CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA_AES</a> = 0, 
 <br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa3e25d1d64c9f01a9fdf5271a5d3c625b">CY_SUPPLICANT_STATUS_JOIN_FAILURE</a>, 
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggab6bb1148b5dbe35ea6bdfbfd88b969deaf067ea8f6e792afd71dad40406ca568d">CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA_MIXED</a> = 1, 
 <br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa522632a1ad33eee331b1bb4319bec94f">CY_SUPPLICANT_STATUS_LEAVE_SUCCESS</a>, 
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggab6bb1148b5dbe35ea6bdfbfd88b969deadc4330f5e6bd00cb347d9dbce1d6b3f3">CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_AES</a> = 2, 
 <br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fad5c572ca1ff40af77d457b9d7f9b775a">CY_SUPPLICANT_STATUS_LEAVE_FAILURE</a>, 
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggab6bb1148b5dbe35ea6bdfbfd88b969dea75b47292f89f17f4a58f5b15a1313813">CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED</a> = 3, 
 <br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fad78840f13969e6b17433330ec9ad78b5">CY_SUPPLICANT_STATUS_LEFT_ALREADY</a>, 
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggab6bb1148b5dbe35ea6bdfbfd88b969deac9f655e060f358cc9a2104863267f4f4">CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_FBT</a> = 4, 
 <br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa0c092dada7d5514c2d7a6770e4301b32">CY_SUPPLICANT_STATUS_SUPPLICANT_INIT_FAILURE</a>, 
+&#160;&#160;<b>CY_ENTERPRISE_SECURITY_AUTH_TYPE_DEFAULT</b> = CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED, 
 <br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fab259237d8c79fd3db0971aa452568376">CY_SUPPLICANT_STATUS_PRE_PHASE1_FAILURE</a>, 
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggab6bb1148b5dbe35ea6bdfbfd88b969dea177de50bd1803b6b6c01c7e0b2f3d051">CY_ENTERPRISE_SECURITY_AUTH_TYPE_UNKNOWN</a> = -1
 <br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa1df4c85b7626e495c407c72045ae0a2e">CY_SUPPLICANT_STATUS_TLS_FAILURE</a>, 
-<br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa1a7456ac6f524b05c97fb17036c5bfcb">CY_SUPPLICANT_STATUS_PHASE2_FAILURE</a>, 
-<br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa8232cf8d4e8339d21d79ce1561bbd790">CY_SUPPLICANT_STATUS_EAP_FAILURE</a>, 
-<br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616facc104cff6b8935b48561a8d2111def5d">CY_SUPPLICANT_STATUS_TIMEOUT</a>, 
-<br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa8a35ffbca6edb691217169938efe8480">CY_SUPPLICANT_STATUS_FAIL</a>, 
-<br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fafb8753bd1bf14e4fa5509bb42ce04ff9">CY_SUPPLICANT_STATUS_PASS</a>, 
-<br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa2c84bd4f73cf3a9cdc81431cc7076f3f">CY_SUPPLICANT_STATUS_UP</a>, 
-<br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa6529227a37b4cf09cb38e50b3baf2bc5">CY_SUPPLICANT_STATUS_DOWN</a>, 
-<br />
-&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#gga936e3d6d714eccd90dcaf8f08614616fa5473a1ab5933c2fcf6eea3c7aba4d785">CY_SUPPLICANT_STATUS_INVALID</a>
-<br />
- }<tr class="memdesc:ga936e3d6d714eccd90dcaf8f08614616f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Supplicant status.  <a href="group__enterprise__security__enums.html#ga936e3d6d714eccd90dcaf8f08614616f">More...</a><br /></td></tr>
+ }<tr class="memdesc:gab6bb1148b5dbe35ea6bdfbfd88b969de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration of Enterprise Security auth modes.  <a href="group__enterprise__security__enums.html#gab6bb1148b5dbe35ea6bdfbfd88b969de">More...</a><br /></td></tr>
 </td></tr>
-<tr class="separator:ga936e3d6d714eccd90dcaf8f08614616f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:gab6bb1148b5dbe35ea6bdfbfd88b969de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaace717cbee387bdc1b99e1be484e9891"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__enums.html#gaace717cbee387bdc1b99e1be484e9891">cy_enterprise_security_tunnel_t</a> { <br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaace717cbee387bdc1b99e1be484e9891a2c4f5282ed9e3a70828891517ece1069">CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_NONE</a> = 0, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaace717cbee387bdc1b99e1be484e9891af38c3165e0d2009f04bb033dc85b867a">CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_EAP</a> = 1, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaace717cbee387bdc1b99e1be484e9891aa32dc3cac74e00004631404a6c1d54f4">CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_CHAP</a> = 2, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaace717cbee387bdc1b99e1be484e9891a45d82bfd2ac141441633091c141037c9">CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_MSCHAP</a> = 3, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaace717cbee387bdc1b99e1be484e9891a93aa6aca9cb8ea1219c9dfeeadae4ddb">CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_MSCHAPV2</a> = 4, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaace717cbee387bdc1b99e1be484e9891acbda6d59a61ae5a6675cc1fefa98fc51">CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_PAP</a> = 5
+<br />
+ }<tr class="memdesc:gaace717cbee387bdc1b99e1be484e9891"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enterprise Security Tunnel EAP Types.  <a href="group__enterprise__security__enums.html#gaace717cbee387bdc1b99e1be484e9891">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:gaace717cbee387bdc1b99e1be484e9891"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf81d8bcebc3ea0e0ccc9d0815d91016b"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__enterprise__security__enums.html#gaf81d8bcebc3ea0e0ccc9d0815d91016b">cy_enterprise_security_eap_type_t</a> { <br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba23cd33abd580521b5f04b2dd1321ddfc">CY_ENTERPRISE_SECURITY_EAP_TYPE_NONE</a> = 0, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba80920503a73bbce6c042c2b01d92f421">CY_ENTERPRISE_SECURITY_EAP_TYPE_IDENTITY</a> = 1, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016bad778a514bb09bdc545a823082140dc5f">CY_ENTERPRISE_SECURITY_EAP_TYPE_NOTIFICATION</a> = 2, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba572a9080b2503d6d5314a4e90daab364">CY_ENTERPRISE_SECURITY_EAP_TYPE_NAK</a> = 3, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba6bd224c8846ccd7d02d856dfdbe7af48">CY_ENTERPRISE_SECURITY_EAP_TYPE_MD5</a> = 4, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba788b4a25e478a0b21b889a1e80d22f0e">CY_ENTERPRISE_SECURITY_EAP_TYPE_OTP</a> = 5, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba094712eab88f4950b6b47c6d7e71464a">CY_ENTERPRISE_SECURITY_EAP_TYPE_GTC</a> = 6, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016baa16797334574c9d8b922223fb1f00192">CY_ENTERPRISE_SECURITY_EAP_TYPE_TLS</a> = 13, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba2b71cdae8304a042245aaf033857a133">CY_ENTERPRISE_SECURITY_EAP_TYPE_LEAP</a> = 17, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba8a72d050772901b5a78f18286e7dab53">CY_ENTERPRISE_SECURITY_EAP_TYPE_SIM</a> = 18, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016bae66677e97a779afc32fc416796859314">CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS</a> = 21, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba4bfe3ff1d4a52f5f50bc347315e08898">CY_ENTERPRISE_SECURITY_EAP_TYPE_AKA</a> = 23, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016baa53629308812ab6eceddf79f04d4d146">CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP</a> = 25, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba14093283a0757fd83f49546a0f97ae5a">CY_ENTERPRISE_SECURITY_EAP_TYPE_MSCHAPV2</a> = 26, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba4bcf7d51aa1a670b115cecc13d872950">CY_ENTERPRISE_SECURITY_EAP_TYPE_TLV</a> = 33, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba3f6c5fcf9059d546810305b1c3ee7fab">CY_ENTERPRISE_SECURITY_EAP_TYPE_FAST</a> = 43, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016bacf2f06627ab031c082c07d7c5d3b3eeb">CY_ENTERPRISE_SECURITY_EAP_TYPE_PAX</a> = 46, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba8d7971802ddf8db8121d27b7ec7fc933">CY_ENTERPRISE_SECURITY_EAP_TYPE_EXPANDED_NAK</a> = 253, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba06268da884a85fdaed59e32b2f36ec5b">CY_ENTERPRISE_SECURITY_EAP_TYPE_WPS</a> = 254, 
+<br />
+&#160;&#160;<a class="el" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016ba5edd4862c83ad370496bea3c7b6d86a8">CY_ENTERPRISE_SECURITY_EAP_TYPE_PSK</a> = 255
+<br />
+ }<tr class="memdesc:gaf81d8bcebc3ea0e0ccc9d0815d91016b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enterprise Security EAP Types.  <a href="group__enterprise__security__enums.html#gaf81d8bcebc3ea0e0ccc9d0815d91016b">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:gaf81d8bcebc3ea0e0ccc9d0815d91016b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
-<a id="ga936e3d6d714eccd90dcaf8f08614616f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga936e3d6d714eccd90dcaf8f08614616f">&#9670;&nbsp;</a></span>cy_suppliant_status_t</h2>
+<a id="gab6bb1148b5dbe35ea6bdfbfd88b969de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab6bb1148b5dbe35ea6bdfbfd88b969de">&#9670;&nbsp;</a></span>cy_enterprise_security_auth_t</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="group__enterprise__security__enums.html#ga936e3d6d714eccd90dcaf8f08614616f">cy_suppliant_status_t</a></td>
+          <td class="memname">enum <a class="el" href="group__enterprise__security__enums.html#gab6bb1148b5dbe35ea6bdfbfd88b969de">cy_enterprise_security_auth_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Supplicant status. </p>
-<p>Various supplicant status codes. </p>
+<p>Enumeration of Enterprise Security auth modes. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa80602fc766e93bd2c8e2b6361c25472e"></a>CY_SUPPLICANT_STATUS_JOIN_SUCCESS&#160;</td><td class="fielddoc"><p>Join successful. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ggab6bb1148b5dbe35ea6bdfbfd88b969deae39d2cb5f54057156a5aa01003a5ff5d"></a>CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA_AES&#160;</td><td class="fielddoc"><p>WPA Enterprise Security with AES. </p>
+<p>Currently supported only on AnyCloud. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa3e25d1d64c9f01a9fdf5271a5d3c625b"></a>CY_SUPPLICANT_STATUS_JOIN_FAILURE&#160;</td><td class="fielddoc"><p>Join failure. </p>
+<tr><td class="fieldname"><a id="ggab6bb1148b5dbe35ea6bdfbfd88b969deaf067ea8f6e792afd71dad40406ca568d"></a>CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA_MIXED&#160;</td><td class="fielddoc"><p>WPA Enterprise Security with AES and TKIP. </p>
+<p>Currently supported only on AnyCloud. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa522632a1ad33eee331b1bb4319bec94f"></a>CY_SUPPLICANT_STATUS_LEAVE_SUCCESS&#160;</td><td class="fielddoc"><p>Leave successful. </p>
+<tr><td class="fieldname"><a id="ggab6bb1148b5dbe35ea6bdfbfd88b969deadc4330f5e6bd00cb347d9dbce1d6b3f3"></a>CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_AES&#160;</td><td class="fielddoc"><p>WPA2 Enterprise Security with AES. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fad5c572ca1ff40af77d457b9d7f9b775a"></a>CY_SUPPLICANT_STATUS_LEAVE_FAILURE&#160;</td><td class="fielddoc"><p>Leave successful. </p>
+<tr><td class="fieldname"><a id="ggab6bb1148b5dbe35ea6bdfbfd88b969dea75b47292f89f17f4a58f5b15a1313813"></a>CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED&#160;</td><td class="fielddoc"><p>WPA2 Enterprise Security with AES and TKIP. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fad78840f13969e6b17433330ec9ad78b5"></a>CY_SUPPLICANT_STATUS_LEFT_ALREADY&#160;</td><td class="fielddoc"><p>Left already. </p>
+<tr><td class="fieldname"><a id="ggab6bb1148b5dbe35ea6bdfbfd88b969deac9f655e060f358cc9a2104863267f4f4"></a>CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_FBT&#160;</td><td class="fielddoc"><p>WPA2 Enterprise Security with AES &amp; FBT. </p>
+<p>Currently not supported, reserved for future. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa0c092dada7d5514c2d7a6770e4301b32"></a>CY_SUPPLICANT_STATUS_SUPPLICANT_INIT_FAILURE&#160;</td><td class="fielddoc"><p>Supplicant init failure. </p>
+<tr><td class="fieldname"><a id="ggab6bb1148b5dbe35ea6bdfbfd88b969dea177de50bd1803b6b6c01c7e0b2f3d051"></a>CY_ENTERPRISE_SECURITY_AUTH_TYPE_UNKNOWN&#160;</td><td class="fielddoc"><p>Default auth type. </p>
+<p>Unknown auth type, used in error handling. Do not set this in input. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fab259237d8c79fd3db0971aa452568376"></a>CY_SUPPLICANT_STATUS_PRE_PHASE1_FAILURE&#160;</td><td class="fielddoc"><p>Pre phase1 failure. </p>
+</table>
+
+</div>
+</div>
+<a id="gaace717cbee387bdc1b99e1be484e9891"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaace717cbee387bdc1b99e1be484e9891">&#9670;&nbsp;</a></span>cy_enterprise_security_tunnel_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__enterprise__security__enums.html#gaace717cbee387bdc1b99e1be484e9891">cy_enterprise_security_tunnel_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enterprise Security Tunnel EAP Types. </p>
+<p>Various Enterprise Security Tunnel EAP types </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ggaace717cbee387bdc1b99e1be484e9891a2c4f5282ed9e3a70828891517ece1069"></a>CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_NONE&#160;</td><td class="fielddoc"><p>Invalid EAP type. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa1df4c85b7626e495c407c72045ae0a2e"></a>CY_SUPPLICANT_STATUS_TLS_FAILURE&#160;</td><td class="fielddoc"><p>TLS failure. </p>
+<tr><td class="fieldname"><a id="ggaace717cbee387bdc1b99e1be484e9891af38c3165e0d2009f04bb033dc85b867a"></a>CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_EAP&#160;</td><td class="fielddoc"><p>EAP as tunnel EAP type. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa1a7456ac6f524b05c97fb17036c5bfcb"></a>CY_SUPPLICANT_STATUS_PHASE2_FAILURE&#160;</td><td class="fielddoc"><p>Phase2 failure. </p>
+<tr><td class="fieldname"><a id="ggaace717cbee387bdc1b99e1be484e9891aa32dc3cac74e00004631404a6c1d54f4"></a>CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_CHAP&#160;</td><td class="fielddoc"><p>CHAP as tunnel EAP type. </p>
+<p>Currently not supported, reserved for future. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa8232cf8d4e8339d21d79ce1561bbd790"></a>CY_SUPPLICANT_STATUS_EAP_FAILURE&#160;</td><td class="fielddoc"><p>Eap failure. </p>
+<tr><td class="fieldname"><a id="ggaace717cbee387bdc1b99e1be484e9891a45d82bfd2ac141441633091c141037c9"></a>CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_MSCHAP&#160;</td><td class="fielddoc"><p>MSCHAP as tunnel EAP type. </p>
+<p>Currently not supported, reserved for future. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616facc104cff6b8935b48561a8d2111def5d"></a>CY_SUPPLICANT_STATUS_TIMEOUT&#160;</td><td class="fielddoc"><p>Timeout. </p>
+<tr><td class="fieldname"><a id="ggaace717cbee387bdc1b99e1be484e9891a93aa6aca9cb8ea1219c9dfeeadae4ddb"></a>CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_MSCHAPV2&#160;</td><td class="fielddoc"><p>MSCHAPv2 as tunnel EAP type. </p>
+<p>Currently not supported, reserved for future. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa8a35ffbca6edb691217169938efe8480"></a>CY_SUPPLICANT_STATUS_FAIL&#160;</td><td class="fielddoc"><p>Status fail. </p>
+<tr><td class="fieldname"><a id="ggaace717cbee387bdc1b99e1be484e9891acbda6d59a61ae5a6675cc1fefa98fc51"></a>CY_ENTERPRISE_SECURITY_TUNNEL_TYPE_PAP&#160;</td><td class="fielddoc"><p>PAP as tunnel EAP type. </p>
+<p>Currently not supported, reserved for future. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fafb8753bd1bf14e4fa5509bb42ce04ff9"></a>CY_SUPPLICANT_STATUS_PASS&#160;</td><td class="fielddoc"><p>Status pass. </p>
+</table>
+
+</div>
+</div>
+<a id="gaf81d8bcebc3ea0e0ccc9d0815d91016b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf81d8bcebc3ea0e0ccc9d0815d91016b">&#9670;&nbsp;</a></span>cy_enterprise_security_eap_type_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__enterprise__security__enums.html#gaf81d8bcebc3ea0e0ccc9d0815d91016b">cy_enterprise_security_eap_type_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enterprise Security EAP Types. </p>
+<p>Various Enterprise Security EAP authentication types </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba23cd33abd580521b5f04b2dd1321ddfc"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_NONE&#160;</td><td class="fielddoc"><p>Invalid EAP type. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa2c84bd4f73cf3a9cdc81431cc7076f3f"></a>CY_SUPPLICANT_STATUS_UP&#160;</td><td class="fielddoc"><p>Status up. </p>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba80920503a73bbce6c042c2b01d92f421"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_IDENTITY&#160;</td><td class="fielddoc"><p>IDENTITY type refer to RFC 3748. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa6529227a37b4cf09cb38e50b3baf2bc5"></a>CY_SUPPLICANT_STATUS_DOWN&#160;</td><td class="fielddoc"><p>status down </p>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016bad778a514bb09bdc545a823082140dc5f"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_NOTIFICATION&#160;</td><td class="fielddoc"><p>NOTIFICATION type refer to RFC 3748. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga936e3d6d714eccd90dcaf8f08614616fa5473a1ab5933c2fcf6eea3c7aba4d785"></a>CY_SUPPLICANT_STATUS_INVALID&#160;</td><td class="fielddoc"><p>Invalid value. </p>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba572a9080b2503d6d5314a4e90daab364"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_NAK&#160;</td><td class="fielddoc"><p>Response only type refer to RFC 3748. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba6bd224c8846ccd7d02d856dfdbe7af48"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_MD5&#160;</td><td class="fielddoc"><p>EAP-MD5 type refer to RFC 3748. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba788b4a25e478a0b21b889a1e80d22f0e"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_OTP&#160;</td><td class="fielddoc"><p>EAP-OTP type refer to RFC 3748. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba094712eab88f4950b6b47c6d7e71464a"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_GTC&#160;</td><td class="fielddoc"><p>EAP-GTC type refer to RFC 3748. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016baa16797334574c9d8b922223fb1f00192"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_TLS&#160;</td><td class="fielddoc"><p>EAP-TLS type refer to RFC 2716. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba2b71cdae8304a042245aaf033857a133"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_LEAP&#160;</td><td class="fielddoc"><p>EAP-LEAP type and it is Cisco proprietary. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba8a72d050772901b5a78f18286e7dab53"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_SIM&#160;</td><td class="fielddoc"><p>EAP-SIM type refer to draft-haverinen-pppext-eap-sim-12.txt. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016bae66677e97a779afc32fc416796859314"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS&#160;</td><td class="fielddoc"><p>EAP-TTLS type refer to draft-ietf-pppext-eap-ttls-02.txt. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba4bfe3ff1d4a52f5f50bc347315e08898"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_AKA&#160;</td><td class="fielddoc"><p>EAP-AKA type refer to draft-arkko-pppext-eap-aka-12.txt. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016baa53629308812ab6eceddf79f04d4d146"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP&#160;</td><td class="fielddoc"><p>PEAP type refer to draft-josefsson-pppext-eap-tls-eap-06.txt. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba14093283a0757fd83f49546a0f97ae5a"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_MSCHAPV2&#160;</td><td class="fielddoc"><p>MSCHAPv2 type refer to draft-kamath-pppext-eap-mschapv2-00.txt. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba4bcf7d51aa1a670b115cecc13d872950"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_TLV&#160;</td><td class="fielddoc"><p>TLV type refer to draft-josefsson-pppext-eap-tls-eap-07.txt. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba3f6c5fcf9059d546810305b1c3ee7fab"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_FAST&#160;</td><td class="fielddoc"><p>draft-cam-winget-eap-fast-00.txt. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016bacf2f06627ab031c082c07d7c5d3b3eeb"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_PAX&#160;</td><td class="fielddoc"><p>draft-clancy-eap-pax-04.txt. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba8d7971802ddf8db8121d27b7ec7fc933"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_EXPANDED_NAK&#160;</td><td class="fielddoc"><p>RFC 3748. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba06268da884a85fdaed59e32b2f36ec5b"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_WPS&#160;</td><td class="fielddoc"><p>Wireless Simple Config. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf81d8bcebc3ea0e0ccc9d0815d91016ba5edd4862c83ad370496bea3c7b6d86a8"></a>CY_ENTERPRISE_SECURITY_EAP_TYPE_PSK&#160;</td><td class="fielddoc"><p>EXPERIMENTAL - type not yet allocated draft-bersani-eap-psk-09. </p>
 </td></tr>
 </table>
 

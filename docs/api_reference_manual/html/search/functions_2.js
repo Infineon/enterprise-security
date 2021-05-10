@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['leave',['leave',['../class_enterprise_security.html#abe10d7461d7ee0b7c7ebe7173ae1f462',1,'EnterpriseSecurity']]]
+  ['join',['join',['../class_enterprise_security.html#a86a8f8c3a91a352ea5422164bb693e33',1,'EnterpriseSecurity']]]
 ];
