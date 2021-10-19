@@ -1,6 +1,6 @@
 var NAVTREE =
 [
-  [ "Cypress Enterprise Security Library", "index.html", [
+  [ "Enterprise Security Library", "index.html", [
     [ "Overview", "index.html", null ],
     [ "API Reference", "modules.html", "modules" ]
   ] ]

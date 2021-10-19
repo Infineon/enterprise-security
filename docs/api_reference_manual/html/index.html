@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Cypress Enterprise Security Library: Overview</title>
+<title>Enterprise Security Library: Overview</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -30,7 +30,7 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><a href="http://www.cypress.com/"><img alt="Logo" src="cypress_logo.png"/></a></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">Cypress Enterprise Security Library</div>
+   <div id="projectname">Enterprise Security Library</div>
   </td>
  </tr>
  </tbody>
@@ -84,7 +84,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 <div class="title">Overview </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>Cypress Enterprise Security library provides the capability for Cypress' best-in-class Wi-Fi enabled PSoC6 devices to connect to enterprise Wi-Fi networks. This library implements a collection of the most commonly used Extensible Authentication Protocols (EAP) that are commonly used in enterprise networks. This library is an embedded variant of the Wi-Fi supplicant (minimal features) that runs on an RTOS and provides the ability to securely join enterprise security networks (802.1x) using various EAP authentication protocols.</p>
+<div class="textblock"><p>Enterprise Security library provides the capability for Infineon's best-in-class Wi-Fi enabled PSoC&trade; 6 devices to connect to enterprise Wi-Fi networks. This library implements a collection of the most commonly used Extensible Authentication Protocols (EAP) that are commonly used in enterprise networks. This library is an embedded variant of the Wi-Fi supplicant (minimal features) that runs on an RTOS and provides the ability to securely join enterprise security networks (802.1x) using various EAP authentication protocols.</p>
 <h1><a class="anchor" id="section_features"></a>
 Features and Functionality</h1>
 <ul>
@@ -103,35 +103,35 @@ Features and Functionality</h1>
 <h1><a class="anchor" id="section_supported_frameworks"></a>
 Supported Frameworks</h1>
 <ul>
-<li>AnyCloud Framework: AnyCloud is a FreeRTOS-based solution. Enterprise Security Library uses the <a href="https://github.com/cypresssemiconductorco/abstraction-rtos">abstraction-rtos</a> library that provides the RTOS abstraction API and the <a href="https://github.com/cypresssemiconductorco/wifi-connection-manager">wcm</a> library for network functions.</li>
-<li>Mbed Framework: Mbed framework is an Mbed OS-based solution. Enterprise Security Library uses the <a href="https://github.com/cypresssemiconductorco/abstraction-rtos">abstraction-rtos</a> library that provides RTOS abstraction API, and uses the Mbed socket API for implementing network functions.</li>
+<li>ModusToolbox&trade; environment: In this environment the Enterprise Security library uses the <a href="https://github.com/infineon/abstraction-rtos">abstraction-rtos</a> library that provides the RTOS abstraction API and the <a href="https://github.com/infineon/wifi-connection-manager">wcm</a> library for network functions.</li>
+<li>Mbed Framework: Mbed framework is an Mbed OS-based solution. Enterprise Security Library uses the <a href="https://github.com/infineon/abstraction-rtos">abstraction-rtos</a> library that provides RTOS abstraction API, and uses the Mbed socket API for implementing network functions.</li>
 </ul>
 <h1><a class="anchor" id="section_supported_platforms"></a>
 Supported Platforms</h1>
 <h2><a class="anchor" id="section_plat_anycloud"></a>
-AnyCloud</h2>
+ModusToolbox™</h2>
 <ul>
-<li><a href="https://www.cypress.com/documentation/development-kitsboards/psoc-6-wi-fi-bt-prototyping-kit-cy8cproto-062-4343w">PSoC 6 WiFi-BT Prototyping Kit (CY8CPROTO-062-4343W)</a></li>
-<li><a href="https://www.cypress.com/documentation/development-kitsboards/psoc-62s2-wi-fi-bt-pioneer-kit-cy8ckit-062s2-43012">PSoC 62S2 Wi-Fi BT Pioneer Kit (CY8CKIT-062S2-43012)</a></li>
+<li><a href="https://www.cypress.com/documentation/development-kitsboards/psoc-6-wi-fi-bt-prototyping-kit-cy8cproto-062-4343w">PSoC&trade; 6 WiFi-BT Prototyping Kit (CY8CPROTO-062-4343W)</a></li>
+<li><a href="https://www.cypress.com/documentation/development-kitsboards/psoc-62s2-wi-fi-bt-pioneer-kit-cy8ckit-062s2-43012">PSoC&trade; 62S2 Wi-Fi BT Pioneer Kit (CY8CKIT-062S2-43012)</a></li>
 </ul>
 <h2><a class="anchor" id="section_plat_mbed"></a>
 Mbed OS</h2>
 <ul>
-<li><a href="https://www.cypress.com/documentation/development-kitsboards/psoc-6-wi-fi-bt-prototyping-kit-cy8cproto-062-4343w">PSoC 6 WiFi-BT Prototyping Kit (CY8CPROTO-062-4343W)</a></li>
-<li><a href="https://www.cypress.com/documentation/development-kitsboards/psoc-62s2-wi-fi-bt-pioneer-kit-cy8ckit-062s2-43012">PSoC 62S2 Wi-Fi BT Pioneer Kit (CY8CKIT-062S2-43012)</a></li>
+<li><a href="https://www.cypress.com/documentation/development-kitsboards/psoc-6-wi-fi-bt-prototyping-kit-cy8cproto-062-4343w">PSoC&trade; 6 WiFi-BT Prototyping Kit (CY8CPROTO-062-4343W)</a></li>
+<li><a href="https://www.cypress.com/documentation/development-kitsboards/psoc-62s2-wi-fi-bt-pioneer-kit-cy8ckit-062s2-43012">PSoC&trade; 62S2 Wi-Fi BT Pioneer Kit (CY8CKIT-062S2-43012)</a></li>
 </ul>
 <h1><a class="anchor" id="section_dependencies"></a>
 Dependent Libraries</h1>
 <h2><a class="anchor" id="section_dep__anycloud"></a>
-AnyCloud</h2>
+ModusToolbox™</h2>
 <ul>
-<li><a href="https://github.com/cypresssemiconductorco/wifi-connection-manager">Wi-Fi Connection Manager</a></li>
+<li><a href="https://github.com/infineon/wifi-connection-manager">Wi-Fi Connection Manager</a></li>
 </ul>
 <h2><a class="anchor" id="section_dep_mbed"></a>
 Mbed OS</h2>
 <ul>
 <li><a href="https://os.mbed.com/mbed-os/releases">Arm Mbed OS 6.2.0</a></li>
-<li><a href="https://github.com/cypresssemiconductorco/connectivity-utilities/releases/tag/latest-v3.X">Connectivity Utilities Library</a></li>
+<li><a href="https://github.com/infineon/connectivity-utilities/releases/tag/latest-v3.X">Connectivity Utilities Library</a></li>
 </ul>
 <h1><a class="anchor" id="section_radius_servers"></a>
 RADIUS Servers</h1>
@@ -140,10 +140,10 @@ RADIUS Servers</h1>
 </ul>
 <h1><a class="anchor" id="section_quick_start"></a>
 Quick Start</h1>
-<p>This library is supported on both AnyCloud and Mbed OS frameworks. The section below provides information on how to build the library in those frameworks.</p>
+<p>This library is supported on both ModusToolbox&trade; and Mbed OS environments. The section below provides information on how to build the library in those environments.</p>
 <h2><a class="anchor" id="quick_start_anycloud"></a>
-AnyCloud</h2>
-<p>A set of pre-defined configuration files have been bundled with the wifi-mw-core library for FreeRTOS, lwIP, and mbed TLS. Review the configuration and make the required adjustments. See the "Quick Start" section in <a href="https://github.com/cypresssemiconductorco/wifi-mw-core/blob/master/README.md">README.md</a>.</p>
+ModusToolbox™</h2>
+<p>A set of pre-defined configuration files have been bundled with the wifi-mw-core library for FreeRTOS, lwIP, and mbed TLS. Review the configuration and make the required adjustments. See the "Quick Start" section in <a href="https://github.com/infineon/wifi-mw-core/blob/master/README.md">README.md</a>.</p>
 <ul>
 <li>Make the following changes to the default mbed TLS configurations in mbedtls_user_config.h:<ul>
 <li>Enable the following flags: <div class="fragment"><div class="line">MBEDTLS_DES_C, MBEDTLS_MD4_C, MBEDTLS_MD5_C, MBEDTLS_SHA1_C, MBEDTLS_SSL_PROTO_TLS1, MBEDTLS_SSL_PROTO_TLS1_1, and MBEDTLS_SSL_EXPORT_KEYS</div></div><!-- fragment --></li>
@@ -153,7 +153,7 @@ AnyCloud</h2>
 <li>Define the following COMPONENTS in the application's Makefile for the Enterprise Security library. <div class="fragment"><div class="line">COMPONENTS=FREERTOS PSOC6HAL MBEDTLS LWIP WCM</div></div><!-- fragment --></li>
 <li>Enterprise Security library disables all the debug log messages by default. To enable log messages, the application must perform the following:<ul>
 <li>Add <code>ENABLE_ENTERPRISE_SECURITY_LOGS</code> macro to the <em>DEFINES</em> in the application's Makefile. The Makefile entry would look as follows: <div class="fragment"><div class="line">DEFINES+=ENABLE_ENTERPRISE_SECURITY_LOGS</div></div><!-- fragment --></li>
-<li>Call the <code>cy_log_init()</code> function provided by the <em>cy-log</em> module. cy-log is part of the <em>connectivity-utilities</em> library. See <a href="https://cypresssemiconductorco.github.io/connectivity-utilities/api_reference_manual/html/group__logging__utils.html">connectivity-utilities library API documentation</a> for cy-log details.</li>
+<li>Call the <code>cy_log_init()</code> function provided by the <em>cy-log</em> module. cy-log is part of the <em>connectivity-utilities</em> library. See <a href="https://infineon.github.io/connectivity-utilities/api_reference_manual/html/group__logging__utils.html">connectivity-utilities library API documentation</a> for cy-log details.</li>
 </ul>
 </li>
 <li>By default, the macro <code>MBEDTLS_HAVE_TIME_DATE</code> is undefined in mbedtls_user_config.h. If application wishes to perform time and date validation on the certificate, then define the <em>MBEDTLS_HAVE_TIME_DATE</em> flag in mbedtls_user_config.h.</li>
@@ -164,9 +164,9 @@ Mbed OS</h2>
 <li>Add the .lib file(s) for dependent libraries.<ul>
 <li>Create a folder named <code>deps</code>.</li>
 <li>Create a file with name mbed-os.lib and add the following line to this file: <div class="fragment"><div class="line">https:<span class="comment">//github.com/ARMmbed/mbed-os/#a2ada74770f043aff3e61e29d164a8e78274fcd4</span></div></div><!-- fragment --></li>
-<li>Create a file with name connectivity-utilities.lib and add the following line to this file: <div class="fragment"><div class="line">https:<span class="comment">//github.com/cypresssemiconductorco/connectivity-utilities/#&lt;commit-SHA-for-latest-release-v3.X&gt;</span></div></div><!-- fragment --></li>
-<li>Replace <code>&lt;commit-SHA-for-latest-release-v3.X&gt;</code> in the above line with commit SHA of 'latest-v3.X' tag available in the <a href="https://github.com/cypresssemiconductorco/connectivity-utilities/releases/tag/latest-v3.X">GitHub repository</a>.<ul>
-<li>Example: For tag <code>release-v3.0.1</code> <div class="fragment"><div class="line">https:<span class="comment">//github.com/cypresssemiconductorco/connectivity-utilities/#68bd1bc9883a0ab424eb6daf1e726f0aba2c54a6</span></div></div><!-- fragment --></li>
+<li>Create a file with name connectivity-utilities.lib and add the following line to this file: <div class="fragment"><div class="line">https:<span class="comment">//github.com/infineon/connectivity-utilities/#&lt;commit-SHA-for-latest-release-v3.X&gt;</span></div></div><!-- fragment --></li>
+<li>Replace <code>&lt;commit-SHA-for-latest-release-v3.X&gt;</code> in the above line with commit SHA of 'latest-v3.X' tag available in the <a href="https://github.com/infineon/connectivity-utilities/releases/tag/latest-v3.X">GitHub repository</a>.<ul>
+<li>Example: For tag <code>release-v3.0.1</code> <div class="fragment"><div class="line">https:<span class="comment">//github.com/infineon/connectivity-utilities/#68bd1bc9883a0ab424eb6daf1e726f0aba2c54a6</span></div></div><!-- fragment --></li>
 </ul>
 </li>
 </ul>
@@ -174,7 +174,7 @@ Mbed OS</h2>
 <li>Add <code>MBED</code> and <code>MBEDTLS</code> to the <em>components_add</em> section in the application's JSON file. The JSON file entry would look as follows: <div class="fragment"><div class="line"><span class="stringliteral">&quot;target.components_add&quot;</span>: [<span class="stringliteral">&quot;MBED&quot;</span>, <span class="stringliteral">&quot;MBEDTLS&quot;</span>]</div></div><!-- fragment --></li>
 <li>Enterprise Security library disables all the debug log messages by default. To enable log messages, the application must perform the following:<ul>
 <li>Add <code>ENABLE_ENTERPRISE_SECURITY_LOGS</code> macro to the <em>macros</em> section in the application's JSON file. The JSON file entry would look as follows: <div class="fragment"><div class="line"><span class="stringliteral">&quot;macros&quot;</span>: [<span class="stringliteral">&quot;ENABLE_ENTERPRISE_SECURITY_LOGS&quot;</span>]</div></div><!-- fragment --></li>
-<li>Call the <code>cy_log_init()</code> function provided by the <em>cy-log</em> module. cy-log is part of the <em>connectivity-utilities</em> library. See <a href="https://cypresssemiconductorco.github.io/connectivity-utilities/api_reference_manual/html/group__logging__utils.html">connectivity-utilities library API documentation</a> for cy-log details.</li>
+<li>Call the <code>cy_log_init()</code> function provided by the <em>cy-log</em> module. cy-log is part of the <em>connectivity-utilities</em> library. See <a href="https://infineon.github.io/connectivity-utilities/api_reference_manual/html/group__logging__utils.html">connectivity-utilities library API documentation</a> for cy-log details.</li>
 </ul>
 </li>
 <li>Add an mbed TLS user config file (for e.g. mbedtls_user_config.h) with the following changes to the default mbed TLS configuration:<ul>
@@ -187,13 +187,13 @@ Mbed OS</h2>
 </ul>
 <h1><a class="anchor" id="section_code_snippet"></a>
 Code Snippets</h1>
-<p>This section provides code snippets for this library on AnyCloud and Mbed OS frameworks. The code snippets given under the AnyCloud section uses C APIs, whereas the snippets given under Mbed OS use C++ Class to demonstrate the library usage. In general, the library features are tested on Mbed OS using C++ Class interface, and tested on AnyCloud using C APIs.</p>
+<p>This section provides code snippets for this library on ModusToolbox&trade; and Mbed OS environements. The code snippets given under the ModusToolbox&trade; section uses C APIs, whereas the snippets given under Mbed OS use C++ Class to demonstrate the library usage. In general, the library features are tested on Mbed OS using C++ Class interface, and tested on ModusToolbox&trade; using C APIs.</p>
 <ul>
-<li>AnyCloud - Snippets for HTTP Server create, start, stop, and delete (C implementation).</li>
+<li>ModusToolbox&trade; - Snippets for HTTP Server create, start, stop, and delete (C implementation).</li>
 <li>Mbed OS - Snippets for HTTP server create, start, stop, and delete (C++ implementation).</li>
 </ul>
 <h1><a class="anchor" id="section_code_snippet_AnyCloud"></a>
-AnyCloud</h1>
+ModusToolbox™</h1>
 <h2><a class="anchor" id="snip1"></a>
 Code Snippet 1: Enterprise Security Join and Leave (EAP-TLS)</h2>
 <p>Creates an Enterprise Security instance and performs join and leave using <a class="el" href="group__enterprise__security__functions.html#ga58f8ea4e23756c5fcd0f8b906995c9ec">cy_enterprise_security_join</a> and <a class="el" href="group__enterprise__security__functions.html#ga596add624e92610ec911888404f90db1">cy_enterprise_security_leave</a> APIs respectively with EAP-TLS. </p><div class="fragment"><div class="line"></div><div class="line"><span class="preprocessor">#include &lt;stdio.h&gt;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#include &quot;cy_enterprise_security.h&quot;</span></div><div class="line"><span class="preprocessor">#include &quot;certificate.h&quot;</span></div><div class="line"><span class="comment">/******************************************************</span></div><div class="line"><span class="comment"> *                      Macros</span></div><div class="line"><span class="comment"> ******************************************************/</span></div><div class="line"><span class="preprocessor">#define RADIUS_SERVER_IDENTITY            &quot;svtuser&quot;</span></div><div class="line"><span class="preprocessor">#define RADIUS_SERVER_PASSWORD            &quot;hnd@123&quot;</span></div><div class="line"><span class="preprocessor">#define ENTERPRISE_SECURITY_NW_SSID       &quot;ENT_SEC_NW_2G&quot;</span></div><div class="line"></div><div class="line"><span class="preprocessor">#define APP_INFO( x )                     printf x</span></div><div class="line"></div><div class="line"><span class="comment">/************************************************************</span></div><div class="line"><span class="comment"> *                       Global Variables                   *</span></div><div class="line"><span class="comment"> ************************************************************/</span></div><div class="line"><span class="comment">/* Enterprise Security parameters */</span></div><div class="line"><span class="keyword">static</span> <a class="code" href="structcy__enterprise__security__parameters__t.html">cy_enterprise_security_parameters_t</a> ent_parameters;</div><div class="line"></div><div class="line"><span class="comment">/* Enterprise Security instance handle */</span></div><div class="line"><span class="keyword">static</span> <a class="code" href="group__enterprise__security__typedefs.html#ga3465a932c15df7c5a089ff92562688c8">cy_enterprise_security_t</a> handle;</div><div class="line"></div><div class="line">cy_rslt_t ent_sec_join_leave_eap_tls()</div><div class="line">{</div><div class="line">    cy_rslt_t result = CY_RSLT_SUCCESS;</div><div class="line"></div><div class="line">    <span class="comment">/* Set the Enterprise Security parameters. */</span></div><div class="line">    ent_parameters.<a class="code" href="structcy__enterprise__security__parameters__t.html#aae48d9bd5609815a9fe0865c58384bd6">ca_cert</a> = (<span class="keywordtype">char</span>*) WIFI_ROOT_CERTIFICATE_STRING;     <span class="comment">/* Defined in certificate.h */</span></div><div class="line">    ent_parameters.<a class="code" href="structcy__enterprise__security__parameters__t.html#a6a12f12fade4982427ff5669392cff4f">client_cert</a> = (<span class="keywordtype">char</span>*) WIFI_USER_CERTIFICATE_STRING; <span class="comment">/* Defined in certificate.h */</span></div><div class="line">    ent_parameters.<a class="code" href="structcy__enterprise__security__parameters__t.html#ac8d3759d965c912dbc71dd038fe88c24">client_key</a> = (<span class="keywordtype">char</span>*) WIFI_USER_PRIVATE_KEY_STRING;  <span class="comment">/* Defined in certificate.h */</span></div><div class="line">    memcpy(ent_parameters.<a class="code" href="structcy__enterprise__security__parameters__t.html#a2869dbd2dba99d8c3f76e187c1d33719">ssid</a>, (<span class="keywordtype">char</span> *)ENTERPRISE_SECURITY_NW_SSID, strlen(ENTERPRISE_SECURITY_NW_SSID) + 1);</div><div class="line"></div><div class="line">    memcpy(ent_parameters.<a class="code" href="structcy__enterprise__security__parameters__t.html#ab3cd260b31f1dd23b4cdfd8427e3993f">outer_eap_identity</a>, (<span class="keywordtype">char</span> *)RADIUS_SERVER_IDENTITY, strlen(RADIUS_SERVER_IDENTITY) + 1);</div><div class="line"></div><div class="line">    ent_parameters.<a class="code" href="structcy__enterprise__security__parameters__t.html#a27effe5c70470c2ddd9721295fe9b142">eap_type</a> = <a class="code" href="group__enterprise__security__enums.html#ggaf81d8bcebc3ea0e0ccc9d0815d91016baa16797334574c9d8b922223fb1f00192">CY_ENTERPRISE_SECURITY_EAP_TYPE_TLS</a>;</div><div class="line">    ent_parameters.<a class="code" href="structcy__enterprise__security__parameters__t.html#aa415fbc0e707d0f1d303acfeb5fe30d1">auth_type</a> = <a class="code" href="group__enterprise__security__enums.html#ggab6bb1148b5dbe35ea6bdfbfd88b969dea75b47292f89f17f4a58f5b15a1313813">CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED</a>;</div><div class="line"></div><div class="line">    <span class="comment">/* Create the Enterprise Security instance and get the handle. */</span></div><div class="line">    result = <a class="code" href="group__enterprise__security__functions.html#gabb4e9a70b803cfbee2a3f7fe4fd6684b">cy_enterprise_security_create</a>(&amp;handle, &amp;ent_parameters);</div><div class="line">    <span class="keywordflow">if</span>( result != CY_RSLT_SUCCESS )</div><div class="line">    {</div><div class="line">        APP_INFO((<span class="stringliteral">&quot;Failed to create Enterprise Security instance with error %u\n&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)result));</div><div class="line">        <span class="keywordflow">return</span> CY_RSLT_ERROR;</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="comment">/* Join the enterprise security network. */</span></div><div class="line">    result = <a class="code" href="group__enterprise__security__functions.html#ga58f8ea4e23756c5fcd0f8b906995c9ec">cy_enterprise_security_join</a>(handle);</div><div class="line">    <span class="keywordflow">if</span>( result == CY_RSLT_SUCCESS )</div><div class="line">    {</div><div class="line">        APP_INFO((<span class="stringliteral">&quot;Joining an Enterprise Security network is successful.\n&quot;</span>));</div><div class="line">    }</div><div class="line">    <span class="keywordflow">else</span></div><div class="line">    {</div><div class="line">        APP_INFO((<span class="stringliteral">&quot;Joining an Enterprise Security network failed with error %u\n&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)result));</div><div class="line">        <span class="keywordflow">goto</span> cleanup;</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="comment">/* Enterprise Security join is successful. Insert other logic here. */</span></div><div class="line"></div><div class="line">    <span class="comment">/* Leave the enterprise security network. */</span></div><div class="line">    result = <a class="code" href="group__enterprise__security__functions.html#ga596add624e92610ec911888404f90db1">cy_enterprise_security_leave</a>(handle);</div><div class="line">    <span class="keywordflow">if</span>( result == CY_RSLT_SUCCESS )</div><div class="line">    {</div><div class="line">        APP_INFO((<span class="stringliteral">&quot;Leaving an Enterprise Security network is successful.\n&quot;</span>));</div><div class="line">    }</div><div class="line">    <span class="keywordflow">else</span></div><div class="line">    {</div><div class="line">        APP_INFO((<span class="stringliteral">&quot;Leaving an Enterprise Security network failed with error %u\n&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)result));</div><div class="line">        <span class="keywordflow">goto</span> cleanup;</div><div class="line">    }</div><div class="line"></div><div class="line">cleanup:</div><div class="line">    <span class="comment">/* Dispose the Enterprise Security instance. */</span></div><div class="line">    <a class="code" href="group__enterprise__security__functions.html#gac348c4bf3286e55d46185f36ee7a8448">cy_enterprise_security_delete</a>(&amp;handle);</div><div class="line">    <span class="keywordflow">if</span>( result != CY_RSLT_SUCCESS )</div><div class="line">    {</div><div class="line">        APP_INFO((<span class="stringliteral">&quot;Failed to delete Enterprise Security instance with error %u\n&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)result));</div><div class="line">        <span class="keywordflow">return</span> CY_RSLT_ERROR;</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keywordflow">return</span> result;</div><div class="line">}</div><div class="line"></div></div><!-- fragment --><h2><a class="anchor" id="snip2"></a>
@@ -214,7 +214,7 @@ Code Snippet 3: Enterprise Security Join and Leave (EAP-TTLS)</h2>
 <div id="nav-path" class="navpath">
     <ul>
         <li class="footer">
-            Generated for <b>Cypress Enterprise Security Library</b> by <b>Cypress Semiconductor Corporation</b>.
+            Generated for <b>Enterprise Security Library</b> by <b>Cypress Semiconductor Corporation</b>.
             All rights reserved.
         </li>
     </ul>

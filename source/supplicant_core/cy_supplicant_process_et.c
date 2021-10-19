@@ -185,65 +185,81 @@ cy_rslt_t supplicant_host_send_eap_tls_fragments( supplicant_workspace_t* worksp
 
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "TLS handshake state: %u\r\n", (unsigned int) workspace->tls_context->context.state);
 
-    if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_HELLO) ||
-            ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
-            ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
-            ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
-            ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) &&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
+    /* Send the alert message to peer */
+    if(workspace->tls_context->context.out_msgtype == MBEDTLS_SSL_MSG_ALERT)
     {
-
-        /* Mark that we already started a record, so that a
-         * Certificate verify won't create it's own if the certificate is already sent.
-         */
-        workspace->have_packet = 1;
         memset( workspace->buffer, 0, workspace->buffer_size );
 
         /* Point the buffer pointer at the start of the buffer */
-
         workspace->data_start   = workspace->buffer;
 
         memcpy(workspace->data_start, buffer, length);
 
         /* Point data at the start of the buffer */
         workspace->data_end = workspace->data_start + length;
-
-        /* If this is the client certificate exchange or change cipher spec with session resumption then return so the TLS engine provides the rest of the handshake packets */
-        if ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
-                ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
-                ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
-                ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) && ( workspace->tls_context->resume == 1 ) ) )
-        {
-            return CY_RSLT_SUCCESS;
-        }
-
-    }
-    else if ( ( workspace->tls_context->context.state > MBEDTLS_SSL_CLIENT_CERTIFICATE )  &&  ( workspace->tls_context->context.state < MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
-    {
-        /* Append the handshake message and return for more unless it's the last message */
-        memcpy(workspace->data_end, buffer, length);
-        workspace->data_end += length;
-        return CY_RSLT_SUCCESS;
-    }
-    else if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ||
-            ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_FLUSH_BUFFERS) || ( workspace->tls_context->context.state == MBEDTLS_SSL_HANDSHAKE_WRAPUP) )&&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
-    {
-        memcpy(workspace->data_end, buffer, length);
-        workspace->data_end += length;
-
-        if ( workspace->tls_context->resume == 1 )
-        {
-#if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
-            workspace->cipher_flags = workspace->tls_context->context.handshake->ciphersuite_info->flags;
-#else
-        	workspace->cipher_flags = workspace->tls_context->context.transform_out->ciphersuite_info->flags;
-#endif
-        }
     }
     else
     {
-        CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Unexpected data to be fragmented\r\n");
-        supplicant_dump_bytes( buffer, length );
-        return CY_RSLT_SUCCESS;
+        if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_HELLO) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
+                ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) &&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
+        {
+
+            /* Mark that we already started a record, so that a
+             * Certificate verify won't create it's own if the certificate is already sent.
+             */
+            workspace->have_packet = 1;
+            memset( workspace->buffer, 0, workspace->buffer_size );
+
+            /* Point the buffer pointer at the start of the buffer */
+
+            workspace->data_start   = workspace->buffer;
+
+            memcpy(workspace->data_start, buffer, length);
+
+            /* Point data at the start of the buffer */
+            workspace->data_end = workspace->data_start + length;
+
+            /* If this is the client certificate exchange or change cipher spec with session resumption then return so the TLS engine provides the rest of the handshake packets */
+            if ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
+                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
+                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
+                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) && ( workspace->tls_context->resume == 1 ) ) )
+            {
+                return CY_RSLT_SUCCESS;
+            }
+
+        }
+        else if ( ( workspace->tls_context->context.state > MBEDTLS_SSL_CLIENT_CERTIFICATE )  &&  ( workspace->tls_context->context.state < MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
+        {
+            /* Append the handshake message and return for more unless it's the last message */
+            memcpy(workspace->data_end, buffer, length);
+            workspace->data_end += length;
+            return CY_RSLT_SUCCESS;
+        }
+        else if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ||
+                ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_FLUSH_BUFFERS) || ( workspace->tls_context->context.state == MBEDTLS_SSL_HANDSHAKE_WRAPUP) )&&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
+        {
+            memcpy(workspace->data_end, buffer, length);
+            workspace->data_end += length;
+
+            if ( workspace->tls_context->resume == 1 )
+            {
+#if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
+                workspace->cipher_flags = workspace->tls_context->context.handshake->ciphersuite_info->flags;
+#else
+                workspace->cipher_flags = workspace->tls_context->context.transform_out->ciphersuite_info->flags;
+#endif
+            }
+        }
+        else
+        {
+            CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Unexpected data to be fragmented\r\n");
+            supplicant_dump_bytes( buffer, length );
+            return CY_RSLT_SUCCESS;
+        }
     }
 
     length_to_be_fragmented = workspace->data_end - workspace->data_start;

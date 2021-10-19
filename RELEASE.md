@@ -1,9 +1,12 @@
-# Cypress Enterprise Security Middleware Library
+# Enterprise Security Middleware Library
 
 ## What's Included?
-Refer to [README.md](./README.md) for a complete description of the enterprise security library
+Refer to [README.md](./README.md) for a complete description of the enterprise security library.
 
 ## Changelog
+### v2.0.1
+* Fixed sending the TLS alert message when server passes certificate with Unknown CA.
+
 ### v2.0.0
 * Updated interface definitions, API return type, and header file names.
 * Added support for AnyCloud framework.
@@ -26,11 +29,11 @@ This version of the Middleware was validated for compatibility with the followin
 
 | Software and Tools                                      | Version |
 | :---                                                    | :----:  |
-| ModusToolbox® software environment                      | 2.3     |
-| - ModusToolbox Device Configurator                      | 3.0     |
-| - ModusToolbox CapSense Configurator / Tuner tools      | 3.15    |
-| PSoC 6 Peripheral Driver Library (PDL)                  | 2.2.0   |
-| GCC Compiler                                            | 9.3.1   |
+| ModusToolbox® software environment                      | 2.4     |
+| - ModusToolbox Device Configurator                      | 3.10    |
+| - ModusToolbox CapSense Configurator / Tuner tools      | 4.0     |
+| PSoC 6 Peripheral Driver Library (PDL)                  | 2.3.0   |
+| GCC Compiler                                            | 10.3.1  |
 | IAR Compiler                                            | 8.32    |
 | Arm® Compiler 6                                         | 6.14    |
 | Mbed OS                                                 | 6.2     |
