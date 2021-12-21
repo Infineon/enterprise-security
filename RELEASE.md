@@ -4,6 +4,10 @@
 Refer to [README.md](./README.md) for a complete description of the enterprise security library.
 
 ## Changelog
+
+### v2.1.0
+* Added support for CY8CEVAL-062S2-MUR-43439M2 kit
+
 ### v2.0.1
 * Fixed sending the TLS alert message when server passes certificate with Unknown CA.
 
