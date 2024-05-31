@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -32,11 +32,12 @@
  */
 
 /** @file
- *  Implements functions for calling mbed-os RTOS APIs
+ *  Implements functions for calling RTOS APIs in AnyCloud
  *
  *  This file provides specific RTOS APIs
  *
  */
+
 #include <stdlib.h>
 
 #include "cy_rtos_abstraction.h"
@@ -55,3 +56,4 @@ void cy_rtos_free( void* p )
 {
     free( p );
 }
+

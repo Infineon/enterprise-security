@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -48,8 +48,8 @@ extern "C" {
  *                  Constants
  ******************************************************/
 #ifdef ENABLE_ENTERPRISE_SECURITY_LOGS
-#define SUPPLICANT_THREAD_STACK_SIZE         ( 4*1024 + 3*1024) /* Extra 3k for debug logs */
-#define TLS_AGENT_THREAD_STACK_SIZE          ( 4*1024 + 3*1024) /* Extra 3k for debug logs */
+#define SUPPLICANT_THREAD_STACK_SIZE         ( 4*1024 + 3*1024 ) /* Extra 3k for debug logs */
+#define TLS_AGENT_THREAD_STACK_SIZE          ( 4*1024 + 3*1024 ) /* Extra 3k for debug logs */
 #else
 #define SUPPLICANT_THREAD_STACK_SIZE         ( 4*1024 )
 #define TLS_AGENT_THREAD_STACK_SIZE          ( 4*1024 )
@@ -57,7 +57,7 @@ extern "C" {
 #define SUPPLICANT_BUFFER_SIZE               ( 3500 )
 #define SUPPLICANT_WORKSPACE_ARRAY_SIZE      ( 3 )
 #define WLC_EVENT_MSG_LINK                   ( 0x01 )
-#define EAPOL_PACKET_TIMEOUT                 ( 15000 ) /* Milliseconds */
+#define EAPOL_PACKET_TIMEOUT                 ( 5000 )  /* Milliseconds */
 #define SUPPLICANT_HANDSHAKE_ATTEMPT_TIMEOUT ( 30000 ) /* Milliseconds */
 #define EAP_HANDSHAKE_TIMEOUT_IN_MSEC        ( 25000 ) /* Milliseconds */
 
@@ -86,6 +86,10 @@ cy_rslt_t supplicant_phase2_start( supplicant_workspace_t* workspace );
 cy_rslt_t supplicant_enable_tls( supplicant_workspace_t* supplicant, void* context );
 void      supplicant_phase2_thread( cy_thread_arg_t arg );
 void      supplicant_free_tls_session( cy_tls_session_t* session );
+tls_agent_packet_t* supplicant_receive_eap_tls_packet( void* workspace_in, uint32_t* new_length, uint32_t timeout );
+cy_rslt_t supplicant_host_get_tls_data(supplicant_workspace_t*, supplicant_packet_t, uint16_t, uint8_t**, uint16_t*, uint16_t*);
+cy_rslt_t supplicant_fragment_and_queue_eap_response( supplicant_workspace_t *workspace );
+cy_rslt_t supplicant_outgoing_push( void* workspace, supplicant_event_message_t* message );
 
 #ifdef __cplusplus
 } /*extern "C" */

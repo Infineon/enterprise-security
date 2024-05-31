@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -76,8 +76,9 @@ supplicant_packet_t supplicant_create_peap_response_packet( supplicant_packet_t*
     record                = (tls_record_t*) ( header->data + length_field_overhead );
 
     record->type          = 23;
-    record->major_version = (uint8_t)workspace->tls_context->context.major_ver;
-    record->minor_version = (uint8_t)workspace->tls_context->context.minor_ver;
+
+    cy_tls_get_versions(workspace->tls_context, &record->major_version, &record->minor_version);
+
     record->length        = htobe16( sizeof( peap_header_t ) + data_length );
     peap_header           = ( peap_header_t* ) record->message;
     peap_header->type     = eap_type;
@@ -110,7 +111,7 @@ void supplicant_send_peap_response_packet( supplicant_packet_t* packet, supplica
     record                = (tls_record_t*) ( header->data + length_field_overhead );
 
     data_length           = htobe16(record->length);
-
+#ifdef COMPONENT_MBEDTLS
     if( mbedtls_ssl_write( &workspace->tls_context->context , record->message, data_length ) < 0 )
     {
         return;
@@ -119,7 +120,11 @@ void supplicant_send_peap_response_packet( supplicant_packet_t* packet, supplica
     data_length = workspace->tls_context->context.out_msglen + sizeof(tls_record_header_t);
 
     memcpy(&record->type, workspace->tls_context->context.out_hdr, data_length);
+#endif
 
+#ifdef COMPONENT_NETXSECURE
+    /* ToDo : Add necessary code for NetXSecure */
+#endif
     if ( length_field_overhead )
     {
         SUPPLICANT_WRITE_32_BE( &header->data, data_length );

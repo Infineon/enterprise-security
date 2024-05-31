@@ -3,7 +3,20 @@
 ## What's Included?
 Refer to [README.md](./README.md) for a complete description of the enterprise security library.
 
+## Known Issues
+| Problem | Workaround |
+| ------- | ---------- |
+| RSA 3072 Bit Keys and Certificates are not supported for enterprise connectivity with Threadx | Currently, no workaround is available. |
+
 ## Changelog
+
+### v3.0.0
+* Enabled Enterprise security with Azure RTOS (ThreadX).
+* Added support for WPA3 Enterprise security.
+* Dropped support of MBED OS and AFR.
+
+### v2.1.1
+* Fixed compilation warning
 
 ### v2.1.0
 * Added support for CY8CEVAL-062S2-MUR-43439M2 kit
@@ -31,13 +44,10 @@ Refer to [README.md](./README.md) for a complete description of the enterprise s
 ## Supported Software and Tools
 This version of the Middleware was validated for compatibility with the following Software and Tools:
 
-| Software and Tools                                      | Version |
-| :---                                                    | :----:  |
-| ModusToolbox® software environment                      | 2.4     |
-| - ModusToolbox Device Configurator                      | 3.10    |
-| - ModusToolbox CapSense Configurator / Tuner tools      | 4.0     |
-| PSoC 6 Peripheral Driver Library (PDL)                  | 2.3.0   |
-| GCC Compiler                                            | 10.3.1  |
-| IAR Compiler                                            | 8.32    |
-| Arm® Compiler 6                                         | 6.14    |
-| Mbed OS                                                 | 6.2     |
+| Software and Tools                                        | Version |
+| :---                                                      | :----:  |
+| ModusToolbox&trade; Software Environment                  | 3.1     |
+| ModusToolbox&trade; Device Configurator                   | 4.10    |
+| GCC Compiler                                              | 11.3.1  |
+| IAR Compiler                                              | 9.30    |
+| Arm Compiler 6                                            | 6.16    |

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -136,7 +136,7 @@ cy_rslt_t supplicant_send_eap_tls_fragment( supplicant_workspace_t* workspace, s
     header->eap.id      = workspace->last_received_id;
     uint16_t packet_length = supplicant_host_get_packet_size( workspace->interface->whd_driver,packet );
     EAP_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Outgoing eap tls packet_length = [%u]\n", (unsigned int)packet_length);
-    supplicant_send_eapol_packet( packet, workspace, EAP_PACKET, packet_length - sizeof(ether_header_t) - sizeof(eapol_header_t) );
+    supplicant_send_eapol_packet( packet, workspace, EAP_PACKET, packet_length - sizeof(cy_ether_header_t) - sizeof(eapol_header_t) );
 
     return CY_RSLT_SUCCESS;
 }

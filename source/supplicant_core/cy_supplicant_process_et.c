@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -41,7 +41,6 @@
 #include "whd_events_int.h"
 #include "cy_ttls.h"
 #include "cyabs_rtos.h"
-#include "version.h"
 
 /******************************************************
  *                    Macros
@@ -49,8 +48,6 @@
 
 /* Supplicant library allocates thread stack memory, Recommended to keep this macro enabled */
 #define RTOS_USE_STATIC_THREAD_STACK
-
-#define MIN( x, y ) ((x) < (y) ? (x) : (y))
 
 #define CY_SUPPLICANT_PROCESS_ET_INFO cy_enterprise_security_log_msg
 #define CY_SUPPLICANT_PROCESS_ET_BYTES( x ) //printf x
@@ -66,12 +63,15 @@ static void          supplicant_dump_bytes                     ( const uint8_t* 
 
 #define IF_TO_WORKSPACE( interface )   ( active_supplicant_workspaces[ WHD_STA_ROLE ] )     /* STA is the only currently supported interface. */
 
+/* Labels */
+#define CY_EAP_TTLS_LABEL       "ttls keying material"
+#define CY_EAP_TLS_LABEL        "client EAP encryption"
+#define CY_EAP_TLS_V13_LABEL    "EXPORTER_EAP_TLS_Key_Material"
+
 /******************************************************
  *              Function Prototypes
  ******************************************************/
-
 extern cy_rslt_t cy_tls_receive_eap_packet( supplicant_workspace_t* supplicant, supplicant_packet_t* packet );
-cy_rslt_t supplicant_outgoing_push( void* workspace, supplicant_event_message_t* message );
 
 /******************************************************
  *              Global variables
@@ -88,6 +88,7 @@ const whd_event_num_t supplicant_events[] = { WLC_E_LINK, WLC_E_DEAUTH_IND, WLC_
  */
 cy_rslt_t tls_calculate_overhead( supplicant_workspace_t* workspace, cy_tls_workspace_t* context, uint16_t available_space, uint16_t* header, uint16_t* footer )
 {
+#ifdef COMPONENT_MBEDTLS
     *header = 0;
     *footer = 0;
     mbedtls_cipher_mode_t mode;
@@ -120,7 +121,10 @@ cy_rslt_t tls_calculate_overhead( supplicant_workspace_t* workspace, cy_tls_work
             *footer +=  context->transform->maclen;
         }
     }
-
+#endif
+#ifdef COMPONENT_NETXSECURE
+    /* ToDo : implementation for netxsecure */
+#endif
     return CY_RSLT_SUCCESS;
 }
 
@@ -172,185 +176,46 @@ tls_agent_packet_t* supplicant_receive_eap_tls_packet( void* workspace_in, uint3
     return message.data.packet;
 }
 
-cy_rslt_t supplicant_host_send_eap_tls_fragments( supplicant_workspace_t* workspace, uint8_t* buffer, uint16_t length )
-{
-    supplicant_packet_t          packet;
-    eap_tls_packet_t*            header;
-    uint8_t*                     data;
-    uint32_t                     length_field_overhead = 0;
-    uint32_t                     packet_length;
-    supplicant_event_message_t   message;
-    uint32_t                     length_to_be_fragmented;
-    uint32_t                     eap_tls_length;
-
-    CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "TLS handshake state: %u\r\n", (unsigned int) workspace->tls_context->context.state);
-
-    /* Send the alert message to peer */
-    if(workspace->tls_context->context.out_msgtype == MBEDTLS_SSL_MSG_ALERT)
-    {
-        memset( workspace->buffer, 0, workspace->buffer_size );
-
-        /* Point the buffer pointer at the start of the buffer */
-        workspace->data_start   = workspace->buffer;
-
-        memcpy(workspace->data_start, buffer, length);
-
-        /* Point data at the start of the buffer */
-        workspace->data_end = workspace->data_start + length;
-    }
-    else
-    {
-        if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_HELLO) ||
-                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
-                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
-                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
-                ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) &&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
-        {
-
-            /* Mark that we already started a record, so that a
-             * Certificate verify won't create it's own if the certificate is already sent.
-             */
-            workspace->have_packet = 1;
-            memset( workspace->buffer, 0, workspace->buffer_size );
-
-            /* Point the buffer pointer at the start of the buffer */
-
-            workspace->data_start   = workspace->buffer;
-
-            memcpy(workspace->data_start, buffer, length);
-
-            /* Point data at the start of the buffer */
-            workspace->data_end = workspace->data_start + length;
-
-            /* If this is the client certificate exchange or change cipher spec with session resumption then return so the TLS engine provides the rest of the handshake packets */
-            if ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
-                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
-                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
-                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) && ( workspace->tls_context->resume == 1 ) ) )
-            {
-                return CY_RSLT_SUCCESS;
-            }
-
-        }
-        else if ( ( workspace->tls_context->context.state > MBEDTLS_SSL_CLIENT_CERTIFICATE )  &&  ( workspace->tls_context->context.state < MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
-        {
-            /* Append the handshake message and return for more unless it's the last message */
-            memcpy(workspace->data_end, buffer, length);
-            workspace->data_end += length;
-            return CY_RSLT_SUCCESS;
-        }
-        else if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ||
-                ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_FLUSH_BUFFERS) || ( workspace->tls_context->context.state == MBEDTLS_SSL_HANDSHAKE_WRAPUP) )&&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
-        {
-            memcpy(workspace->data_end, buffer, length);
-            workspace->data_end += length;
-
-            if ( workspace->tls_context->resume == 1 )
-            {
-#if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
-                workspace->cipher_flags = workspace->tls_context->context.handshake->ciphersuite_info->flags;
-#else
-                workspace->cipher_flags = workspace->tls_context->context.transform_out->ciphersuite_info->flags;
-#endif
-            }
-        }
-        else
-        {
-            CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Unexpected data to be fragmented\r\n");
-            supplicant_dump_bytes( buffer, length );
-            return CY_RSLT_SUCCESS;
-        }
-    }
-
-    length_to_be_fragmented = workspace->data_end - workspace->data_start;
-    eap_tls_length          = length_to_be_fragmented;
-    data                    = workspace->buffer;
-    workspace->have_packet   = 0; /* Buffer should be consumed after this */
-
-    /* This is the start of an EAP fragment chain */
-    length_field_overhead = 4;
-
-    while (length_to_be_fragmented != 0)
-    {
-        uint16_t amount_to_copy = 0;
-        cy_rslt_t result;
-        uint16_t aligned_length;
-
-        amount_to_copy = (uint16_t) MIN(length_to_be_fragmented, ( 1024 - length_field_overhead ) );
-        length_to_be_fragmented -= amount_to_copy;
-        packet_length  = sizeof(eap_tls_packet_t) - 1 + length_field_overhead + amount_to_copy;
-        result = supplicant_host_create_packet( workspace->interface->whd_driver,&packet, packet_length );
-        if ( result != CY_RSLT_SUCCESS )
-        {
-            CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "Unable to create eapol packet\r\n");
-            return result;
-        }
-
-        header = ( eap_tls_packet_t* ) supplicant_host_get_data(  workspace->interface->whd_driver,packet );
-        header->eap.code      = EAP_CODE_RESPONSE;
-        header->eap.type      = workspace->eap_type;
-        header->eap.id        = workspace->last_received_id;
-        header->eap_tls.flags = 0;
-        SUPPLICANT_WRITE_16_BE( &aligned_length, (sizeof(eap_header_t) + sizeof(eap_tls_header_t) + length_field_overhead + amount_to_copy) );
-        header->eap.length = aligned_length;
-        memcpy( &header->data[0] + length_field_overhead, data, amount_to_copy );
-        supplicant_host_set_packet_size( workspace->interface->whd_driver,packet, packet_length );
-
-        /* If the length field is included then this is the first (possibly only) fragment */
-        if ( length_field_overhead == 4 )
-        {
-
-            header->eap_tls.flags = EAP_TLS_FLAG_LENGTH_INCLUDED;
-            SUPPLICANT_WRITE_32_BE( &header->data, eap_tls_length );
-            if ( length_to_be_fragmented != 0 )
-            {
-                header->eap_tls.flags |= EAP_TLS_FLAG_MORE_FRAGMENTS;
-            }
-
-            supplicant_queue_message_packet( workspace, SUPPLICANT_EVENT_PACKET_TO_SEND, packet );
-            length_field_overhead = 0;
-
-        }
-        else /* The length field is not included */
-        {
-            if ( length_to_be_fragmented != 0 )
-            {
-                header->eap_tls.flags |= EAP_TLS_FLAG_MORE_FRAGMENTS;
-            }
-            message.event_type  = SUPPLICANT_EVENT_PACKET_TO_SEND;
-            message.data.packet = packet;
-            supplicant_outgoing_push((void*) workspace->supplicant_host_workspace, &message );
-
-        }
-        if ( length_to_be_fragmented != 0 )
-        {
-            data += amount_to_copy;
-        }
-    }
-
-    return CY_RSLT_SUCCESS;
-}
-
 cy_rslt_t supplicant_tls_agent_finish_connect( supplicant_workspace_t* workspace )
 {
-    uint8_t mppe_keys[128]={0};
-    uint8_t tmp[64];
-    cy_rslt_t result = CY_RSLT_SUCCESS;
-    const char *label = NULL;
+    uint8_t mppe_keys[128]      = {0};
+    uint8_t *key                = NULL;
+    uint8_t key_len             = 0;
+    cy_rslt_t result            = CY_RSLT_SUCCESS;
+    const char *label           = NULL;
+    uint8_t eap_tls13_context   = CY_ENTERPRISE_SECURITY_EAP_TYPE_NONE;
+    uint8_t *context            = NULL;
+    uint16_t context_len        = 0;
 
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "TLS handshake completed successfully\r\n");
 
     if(workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS)
     {
-        label = "ttls keying material";
+        /* Update tls13 context if required */
+        label = CY_EAP_TTLS_LABEL;
     }
     else
     {
-        label = "client EAP encryption";
+        if (workspace->tls_context->tls_v13)
+        {
+            eap_tls13_context = CY_ENTERPRISE_SECURITY_EAP_TYPE_TLS;
+            context = &eap_tls13_context;
+            context_len = 1;
+            label = CY_EAP_TLS_V13_LABEL;
+        }
+        else
+        {
+            label = CY_EAP_TLS_LABEL;
+        }
     }
 
     /* Calculate MPPE KEY */
-    get_mppe_key( workspace->tls_context, label, mppe_keys, SIZEOF_MPPE_KEYS);
+    result = get_mppe_key( workspace->tls_context, label, context, context_len, mppe_keys, SIZEOF_MPPE_KEYS);
+    if ( result != CY_RSLT_SUCCESS )
+    {
+        CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "Failed to generate MPPE KEY\r\n");
+        return result;
+    }
 
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "MPPE keys:\r\n");
     supplicant_dump_bytes( mppe_keys, SIZEOF_MPPE_KEYS );
@@ -358,15 +223,24 @@ cy_rslt_t supplicant_tls_agent_finish_connect( supplicant_workspace_t* workspace
     if ( workspace->auth_type == CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_FBT )
     {
         /* Set the PMK which is the second 32 bytes of the MPPE keys */
-        supplicant_host_hex_bytes_to_chars( (char*) tmp, mppe_keys + PMK_LEN, PMK_LEN );
+        key = mppe_keys + PMK_LEN;
+        key_len = PMK_LEN;
     }
+#ifdef COMPONENT_CAT5
+    else if ( workspace->auth_type == CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_192BIT )
+    {
+        key = mppe_keys;
+        key_len = PMK_LEN_192BIT;
+    }
+#endif
     else
     {
         /* Set the PMK which is the first 32 bytes of the MPPE keys */
-        supplicant_host_hex_bytes_to_chars( (char*) tmp, mppe_keys, PMK_LEN );
+        key = mppe_keys;
+        key_len = PMK_LEN;
     }
 
-    result  = supplicant_set_passphrase( workspace->interface,tmp, 64 );
+    result  = supplicant_set_pmk( workspace->interface,key, key_len );
     if ( result != CY_RSLT_SUCCESS )
     {
         CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "Failed to write PMK to radio firmware\r\n");
@@ -393,7 +267,7 @@ cy_rslt_t supplicant_outgoing_pop( void* workspace, supplicant_event_message_t* 
     supplicant_host_workspace_t* supplicant_host = (supplicant_host_workspace_t*)workspace;
     cy_rslt_t result;
 
-    result = cy_rtos_get_queue( &supplicant_host->outgoing_packet_queue, message, SUPPLICANT_NEVER_TIMEOUT, 0 );
+    result = cy_rtos_get_queue( &supplicant_host->outgoing_packet_queue, message, SUPPLICANT_TIMEOUT, 0 );
 
     if(result != CY_RSLT_SUCCESS)
     {
@@ -411,9 +285,110 @@ cy_rslt_t supplicant_outgoing_push( void* workspace, supplicant_event_message_t*
     result = cy_rtos_put_queue( &supplicant_host->outgoing_packet_queue, message, SUPPLICANT_NEVER_TIMEOUT, 0 );
     if(result != CY_RSLT_SUCCESS)
     {
+        whd_buffer_release( supplicant_host->host_workspace.interface->whd_driver, (whd_buffer_t) message->data.packet, WHD_NETWORK_TX );
         return CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ERROR;
     }
 
+    return CY_RSLT_SUCCESS;
+}
+
+cy_rslt_t supplicant_host_get_tls_data( supplicant_workspace_t* workspace,supplicant_packet_t eapol_packet, uint16_t offset, uint8_t** data, uint16_t* fragment_available_data_length, uint16_t *total_available_data_length )
+{
+    uint16_t packet_length = supplicant_host_get_packet_size(workspace->interface->whd_driver, eapol_packet );
+
+    *data = supplicant_host_get_data( workspace->interface->whd_driver, eapol_packet ) + offset;
+    *total_available_data_length    = packet_length - offset;
+    *fragment_available_data_length = *total_available_data_length;
+
+    return CY_RSLT_SUCCESS;
+}
+
+cy_rslt_t supplicant_fragment_and_queue_eap_response( supplicant_workspace_t *workspace )
+{
+    supplicant_packet_t          packet;
+    eap_tls_packet_t*            header;
+    uint32_t                     length_to_be_fragmented;
+    uint32_t                     eap_tls_length;
+    uint8_t*                     data;
+    supplicant_event_message_t   message;
+    uint32_t                     packet_length;
+    uint32_t                     length_field_overhead = 0;
+
+    length_to_be_fragmented = workspace->data_end - workspace->data_start;
+    eap_tls_length          = length_to_be_fragmented;
+    data                    = workspace->buffer;
+    workspace->have_packet  = 0; /* Buffer should be consumed after this */
+
+    /* This is the start of an EAP fragment chain */
+    length_field_overhead = 4;
+
+    while (length_to_be_fragmented != 0)
+    {
+        uint16_t amount_to_copy = 0;
+        cy_rslt_t result;
+        uint16_t aligned_length;
+
+        amount_to_copy = (uint16_t) SUPPLICANT_DEFS_MIN(length_to_be_fragmented, ( 1024 - length_field_overhead ) );
+        length_to_be_fragmented -= amount_to_copy;
+        packet_length  = sizeof(eap_tls_packet_t) - 1 + length_field_overhead + amount_to_copy;
+        result = supplicant_host_create_packet( workspace->interface->whd_driver,&packet, packet_length );
+        if ( result != CY_RSLT_SUCCESS )
+        {
+            CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "Unable to create eapol packet\r\n");
+            return result;
+        }
+
+        header = ( eap_tls_packet_t* ) supplicant_host_get_data(  workspace->interface->whd_driver,packet );
+        header->eap.code      = EAP_CODE_RESPONSE;
+        header->eap.type      = workspace->eap_type;
+        header->eap.id        = workspace->last_received_id;
+        header->eap_tls.flags = 0;
+        SUPPLICANT_WRITE_16_BE( &aligned_length, (sizeof(eap_header_t) + sizeof(eap_tls_header_t) + length_field_overhead + amount_to_copy) );
+        header->eap.length = aligned_length;
+        memcpy( &header->data[0] + length_field_overhead, data, amount_to_copy );
+        supplicant_host_set_packet_size( workspace->interface->whd_driver,packet, packet_length );
+
+        /* If the length field is included then this is the first (possibly only) fragment */
+        if ( length_field_overhead == 4 )
+        {
+            header->eap_tls.flags = EAP_TLS_FLAG_LENGTH_INCLUDED;
+            SUPPLICANT_WRITE_32_BE( &header->data, eap_tls_length );
+            if ( length_to_be_fragmented != 0 )
+            {
+                header->eap_tls.flags |= EAP_TLS_FLAG_MORE_FRAGMENTS;
+            }
+
+            result = supplicant_queue_message_packet( workspace, SUPPLICANT_EVENT_PACKET_TO_SEND, packet );
+            if ( result != CY_RSLT_SUCCESS )
+            {
+                CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "Sending EAPOL packet failed\r\n");
+                return result;
+            }
+            length_field_overhead = 0;
+
+        }
+        else /* The length field is not included */
+        {
+            if ( length_to_be_fragmented != 0 )
+            {
+                header->eap_tls.flags |= EAP_TLS_FLAG_MORE_FRAGMENTS;
+            }
+            message.event_type  = SUPPLICANT_EVENT_PACKET_TO_SEND;
+            message.data.packet = packet;
+
+            result = supplicant_outgoing_push((void*) workspace->supplicant_host_workspace, &message );
+            if ( result != CY_RSLT_SUCCESS )
+            {
+                CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "Sending EAPOL fragment failed\r\n");
+                return result;
+            }
+        }
+
+        if ( length_to_be_fragmented != 0 )
+        {
+            data += amount_to_copy;
+        }
+    }
     return CY_RSLT_SUCCESS;
 }
 
@@ -484,10 +459,12 @@ cy_rslt_t supplicant_tls_agent_init( tls_agent_workspace_t* workspace )
     workspace->tls_agent_host_workspace = host_workspace;
 
 #ifdef RTOS_USE_STATIC_THREAD_STACK
-    CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "[%s()] : L%d : MEM : MALLOC : Allocateing TLS Agent thread stack\r\n", __FUNCTION__, __LINE__);
+    CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "[%s()] : L%d : MEM : MALLOC : Allocating TLS Agent thread stack\r\n", __FUNCTION__, __LINE__);
     host_workspace->thread_stack = supplicant_host_malloc("tls agent stack", TLS_AGENT_THREAD_STACK_SIZE);
     if (host_workspace->thread_stack == NULL)
     {
+        CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR,
+            "ERROR : Failed to allocate thread stack for TLS Agent\r\n");
         supplicant_host_free(host_workspace);
         host_workspace = NULL;
         return CY_RSLT_ENTERPRISE_SECURITY_NOMEM;
@@ -558,6 +535,9 @@ void supplicant_eap_handshake_cleanup( supplicant_workspace_t* workspace )
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "[%s()] : L%d : Deinit Supplicant agent\r\n", __FUNCTION__, __LINE__);
     supplicant_tls_agent_deinit( &workspace->tls_agent );
 
+    /* Clean the session as we no longer need it */
+    cy_tls_session_cleanup(workspace->tls_context);
+
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "Reset supplicant states\r\n");
     supplicant_init_state( workspace, workspace->eap_type );
 
@@ -589,7 +569,7 @@ void supplicant_tls_agent_thread( cy_thread_arg_t arg )
     supplicant_event_message_t message;
 
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\nTLS handshake start..\r\n");
-    if ( cy_tls_generic_start_tls_with_ciphers( workspace->tls_context,workspace, TLS_VERIFICATION_REQUIRED ) != CY_RSLT_SUCCESS )
+    if ( cy_tls_generic_start_tls_with_ciphers( workspace->tls_context, workspace, TLS_VERIFICATION_REQUIRED ) != CY_RSLT_SUCCESS )
     {
         CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "TLS handshake failed with error\r\n");
         workspace->supplicant_result = CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED;
@@ -597,8 +577,14 @@ void supplicant_tls_agent_thread( cy_thread_arg_t arg )
     else
     {
         CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "TLS Agent finish connect start..\r\n");
-        supplicant_tls_agent_finish_connect( workspace );
-        CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "TLS Agent finish connect completed\r\n");
+        if ( supplicant_tls_agent_finish_connect( workspace ) == CY_RSLT_SUCCESS)
+        {
+            CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "TLS Agent finish connect completed\r\n");
+        }
+        else
+        {
+            CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "TLS Agent finish connect failed\r\n");
+        }
     }
     /* Clean up left over messages in the event queue */
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Cleanup TLS Agent event queue\r\n");
@@ -631,7 +617,7 @@ cy_rslt_t supplicant_get_result( supplicant_workspace_t* workspace )
 void supplicant_set_identity( supplicant_workspace_t* workspace, const uint8_t* eap_identity, uint32_t eap_identity_length )
 {
     workspace->outer_eap_identity_length = eap_identity_length;
-    memcpy( workspace->outer_eap_identity, eap_identity, MIN( eap_identity_length, sizeof(workspace->outer_eap_identity) ) );
+    memcpy( workspace->outer_eap_identity, eap_identity, SUPPLICANT_DEFS_MIN( eap_identity_length, sizeof(workspace->outer_eap_identity) ) );
 }
 
 void supplicant_set_inner_identity( supplicant_workspace_t* workspace, eap_type_t eap_type, void* inner_identity )
@@ -646,8 +632,8 @@ void supplicant_set_inner_identity( supplicant_workspace_t* workspace, eap_type_
         if ( phase2 == NULL )
             return;
 
-        phase2->identity_length = MIN( identity->identity_length, sizeof(phase2->identity));
-        phase2->password_length = MIN( identity->password_length, sizeof(phase2->password));
+        phase2->identity_length = SUPPLICANT_DEFS_MIN( identity->identity_length, sizeof(phase2->identity));
+        phase2->password_length = SUPPLICANT_DEFS_MIN( identity->password_length, sizeof(phase2->password));
         memcpy( phase2->identity, identity->identity, phase2->identity_length );
         memcpy( phase2->password, identity->password, phase2->password_length );
     }
@@ -678,6 +664,9 @@ void* supplicant_external_event_handler( whd_interface_t ifp, const whd_event_he
 
                     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "[%s()] : L%d : Start timer to wait for EAPOL ID request\r\n", __FUNCTION__, __LINE__);
                     supplicant_host_start_timer( workspace->supplicant_host_workspace, EAPOL_PACKET_TIMEOUT ); /* Start a timer to wait for EAP ID Request */
+
+                    // For mimicing eap start
+                    //supplicant_queue_message_packet( workspace, SUPPLICANT_EVENT_TIMER_TIMEOUT, NULL );
                 }
 
             }
@@ -785,12 +774,21 @@ void supplicant_phase2_thread( cy_thread_arg_t arg )
 
     /* Wait until TLS is done or phase2 state is aborted */
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "Wait for TLS handshake to finish or abort\r\n");
+#ifdef COMPONENT_MBEDTLS
     while ( workspace->tls_context->context.state != MBEDTLS_SSL_HANDSHAKE_OVER &&
             phase2_workspace->state.result != CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED )
     {
         cy_rtos_delay_milliseconds( 10 );
     }
+#endif
+#ifdef COMPONENT_NETXSECURE
+    while ( workspace->tls_context->context.nx_secure_tls_client_state != NX_SECURE_TLS_CLIENT_STATE_HANDSHAKE_FINISHED &&
+            phase2_workspace->state.result != CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED )
+    {
+        cy_rtos_delay_milliseconds( 10 );
+    }
 
+#endif
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "TLS handshake finished. Start PEAP processing loop\r\n");
 
     if ( phase2_workspace->state.result == CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED )
@@ -806,8 +804,15 @@ void supplicant_phase2_thread( cy_thread_arg_t arg )
     {
         supplicant_packet_t packet;
         uint8_t data[1024]= {0};
-        supplicant_buffer_t buffer= {0};
+        supplicant_buffer_t buffer;
+        memset(&buffer, 0, sizeof(buffer));
+#ifdef COMPONENT_MBEDTLS
         buffer.payload = data;
+#endif
+#ifdef COMPONENT_NETXDUO
+        /* ToDo: Fill the netxduo buffer with data */
+        (void)data;
+#endif
         packet =(supplicant_packet_t) &buffer;
 
         CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Waiting to receive EAP packet\r\n");
@@ -855,6 +860,7 @@ cy_rslt_t supplicant_process_event(supplicant_workspace_t* workspace, supplicant
     uint16_t len;
 
     // CY_SUPPLICANT_PROCESS_ET_INFO(( "[%s()] : L%d : BESL Event Type = [%s]\r\n", __FUNCTION__, __LINE__, SUPPLICANT_EVENT_to_string(message->event_type) ));
+    CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "[%s()] : L%d : BESL Event Type = [%d]\r\n", __FUNCTION__, __LINE__, message->event_type );
     /* Process the event */
     switch ( message->event_type )
     {
@@ -949,7 +955,7 @@ cy_rslt_t supplicant_process_event(supplicant_workspace_t* workspace, supplicant
                              */
                             workspace->tls_length_overhead = 4;
                         }
-                        
+
                         len = supplicant_host_hton16( eap_tls_packet->eap.length );
                         CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "EAP packet received with EAP ID = [%u], len = %d \r\n", (unsigned int)eap_tls_packet->eap.id, len);
                         supplicant_dump_bytes((uint8_t*)&eap_tls_packet->eap, SUPPLICANT_READ_16_BE( (uint8_t *)&eap_tls_packet->eap.length ));
@@ -1027,7 +1033,12 @@ cy_rslt_t supplicant_process_event(supplicant_workspace_t* workspace, supplicant
         case SUPPLICANT_EVENT_PACKET_TO_SEND:
             CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Supplicant event packet to send\r\n");
             supplicant_send_eap_tls_fragment( workspace, message->data.packet );
+#ifdef COMPONENT_MBEDTLS
             if ( workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP  && ( workspace->tls_context->context.state  >= MBEDTLS_SSL_CLIENT_FINISHED ) )
+#endif
+#ifdef COMPONENT_NETXSECURE
+            if ( workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP  && ( workspace->tls_context->context.nx_secure_tls_client_state  >= NX_SECURE_TLS_CLIENT_STATE_HANDSHAKE_FINISHED ) )
+#endif
             {
                 CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Initialize PEAP thread. workspace->tunnel_auth_type %d\r\n", workspace->tunnel_auth_type);
                 supplicant_phase2_init(workspace, CY_ENTERPRISE_SECURITY_EAP_TYPE_MSCHAPV2); //workspace->tunnel_auth_type );
@@ -1097,7 +1108,7 @@ void supplicant_thread_main( cy_thread_arg_t arg )
             if ( host->timer_timeout != 0 )
             {
                 CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Timer timeout is enabled. Find the min wait time again\r\n");
-                time_to_wait = MIN( time_to_wait, host->timer_timeout - (current_time - host->timer_reference));
+                time_to_wait = SUPPLICANT_DEFS_MIN( time_to_wait, host->timer_timeout - (current_time - host->timer_reference));
             }
         }
         else
@@ -1301,7 +1312,7 @@ cy_rslt_t supplicant_init(supplicant_workspace_t* workspace, supplicant_connecti
         }
         workspace->inner_identity.password_length = 2 * ( i - 1 );
 
-        workspace->inner_identity.identity_length = MIN( sizeof( workspace->inner_identity.identity ), strlen( (char* )conn_info->user_name ) );
+        workspace->inner_identity.identity_length = SUPPLICANT_DEFS_MIN( sizeof( workspace->inner_identity.identity ), strlen( (char* )conn_info->user_name ) );
         memcpy( workspace->inner_identity.identity, conn_info->user_name, workspace->inner_identity.identity_length );
     }
 
@@ -1365,10 +1376,10 @@ cy_rslt_t supplicant_deinit( supplicant_workspace_t* workspace )
     supplicant_host_workspace_t* supplicant_host_workspace = (supplicant_host_workspace_t*) workspace->supplicant_host_workspace;
     supplicant_event_message_t message;
 
-    /* Check if supplicant is stopped before de-initializing it */
-    if ( workspace->supplicant_result != CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED )
+    /* Check if supplicant is started before de-initializing it */
+    if ( workspace->supplicant_result == CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_NOT_STARTED )
     {
-        CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Either supplicant is still not stopped or supplicant is not started\r\n");
+        CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "supplicant is not started\r\n");
         return CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ERROR;
     }
 
@@ -1385,6 +1396,10 @@ cy_rslt_t supplicant_deinit( supplicant_workspace_t* workspace )
     {
         return CY_RSLT_SUCCESS;
     }
+
+    /* Wait for supplicant thread to exit */
+    cy_rtos_join_thread(&supplicant_host_workspace->host_workspace.thread);
+    CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Delete supplicant thread %p \r\n",supplicant_host_workspace->host_workspace.thread);
 
     /** Queues clean up **/
     /* Clean up left over messages in the event and outgoing packet queues */
@@ -1408,15 +1423,6 @@ cy_rslt_t supplicant_deinit( supplicant_workspace_t* workspace )
     if ( supplicant_host_workspace != NULL )
     {
         IF_TO_WORKSPACE( supplicant_host_workspace->host_workspace.interface->role ) = NULL;
-
-        /* Delete the supplicant thread */
-        if ( workspace->supplicant_result != CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_NOT_STARTED )
-        {
-            cy_rtos_join_thread(&supplicant_host_workspace->host_workspace.thread);
-            CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Delete supplicant thread %p \r\n",supplicant_host_workspace->host_workspace.thread);
-        }
-        CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "Deleted supplicant thread\r\n");
-
 
         CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Deinit and free host queues\r\n");
         cy_rtos_deinit_queue( &supplicant_host_workspace->host_workspace.event_queue );
@@ -1485,6 +1491,11 @@ void supplicant_free_tls_session( cy_tls_session_t* session )
     /* If session is not NULL, free it from memory. */
     if(session != NULL)
     {
+#ifdef COMPONENT_MBEDTLS
         mbedtls_ssl_session_free(session);
+#endif
+#ifdef COMPONENT_NETXSECURE
+        /* ToDo : Invoke appropriate netxsecure session free function */
+#endif
     }
 }

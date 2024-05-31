@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -85,12 +85,16 @@ extern "C" {
  */
 typedef enum
 {
-    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA_AES    = 0, /**<  WPA Enterprise Security with AES. Currently supported only on AnyCloud. */
-    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA_MIXED  = 1, /**<  WPA Enterprise Security with AES and TKIP. Currently supported only on AnyCloud. */
-    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_AES   = 2, /**<  WPA2 Enterprise Security with AES. */
-    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED = 3, /**<  WPA2 Enterprise Security with AES and TKIP. */
-    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_FBT   = 4, /**<  WPA2 Enterprise Security with AES & FBT. Currently not supported, reserved for future. */
-
+    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA_AES       = 0, /**<  WPA Enterprise Security with AES. Currently supported only on AnyCloud. */
+    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA_MIXED     = 1, /**<  WPA Enterprise Security with AES and TKIP. Currently supported only on AnyCloud. */
+    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_AES      = 2, /**<  WPA2 Enterprise Security with AES. */
+    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED    = 3, /**<  WPA2 Enterprise Security with AES and TKIP. */
+    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_FBT      = 4, /**<  WPA2 Enterprise Security with AES & FBT. Currently not supported, reserved for future. */
+#ifdef COMPONENT_CAT5
+    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_AES      = 5, /**<  WPA3 Enterprise Security with AES GCM-256 */
+    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_192BIT   = 6, /**<  WPA3 192-BIT Enterprise Security with AES. */
+    CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_AES_CCMP = 7, /**<  WPA3 Enterprise Security with AES CCM-128 */
+#endif
     /* Add new entries above this line */
     CY_ENTERPRISE_SECURITY_AUTH_TYPE_DEFAULT = CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED, /** Default auth type. */
     CY_ENTERPRISE_SECURITY_AUTH_TYPE_UNKNOWN = -1   /**< Unknown auth type, used in error handling. Do not set this in input. */

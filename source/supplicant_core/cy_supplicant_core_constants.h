@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -76,6 +76,7 @@ ALWAYS_INLINE_PRE static inline ALWAYS_INLINE uint32_t htobe32(uint32_t v)
 #define SIZEOF_SESSION_MASTER        (48)
 #define SIZEOF_MPPE_KEYS             (128)
 #define PMK_LEN                      (32)
+#define PMK_LEN_192BIT               (48)
 
 #define EAP_TLS_FLAG_LENGTH_INCLUDED (0x80)
 #define EAP_TLS_FLAG_MORE_FRAGMENTS  (0x40)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -39,7 +39,7 @@ extern "C" {
 
 #include "cy_enterprise_security_error.h"
 #include "cy_tls_stack_specific.h"
-#include "version.h"
+
 
 /******************************************************
  *                      Macros
@@ -48,20 +48,7 @@ extern "C" {
 /******************************************************
  *                      Constants
  ******************************************************/
-#define TLS_RANDOM_BYTES                         (64)
-#define TLS_SERVER_RANDOM_BYTES                  (32)
-#define TLS_CLIENT_RANDOM_BYTES                  (32)
-#define TLS_MASTER_SECRET_BYTES                  (48)
-#define TLS_SERVER_VERSION_LEN                   (2)
-#define BUFFER_SIZE                              (1600)
 
-#define MBEDTLS_VERSION_WITH_PRF_SUPPORT         (0x02130000) /* mbedTLS version 2.19.0 where PRF support is added. */
-
-/* TODO: Make this header independent of mbedTLS library
- *       so that it can be common across TLS implementations.
- *       The supplicant core logic is also using mbedTLS-specific
- *       and needs to be abstracted.
- */
 /******************************************************
  *                      Enums
  ******************************************************/
@@ -81,41 +68,6 @@ typedef enum
 /******************************************************
  *                      Typedefs
  ******************************************************/
-typedef struct eap_tls_keys
-{
-    unsigned char master_secret[TLS_MASTER_SECRET_BYTES];
-    unsigned char randbytes[TLS_RANDOM_BYTES];
-#if (MBEDTLS_VERSION_NUMBER > MBEDTLS_VERSION_WITH_PRF_SUPPORT)
-    mbedtls_tls_prf_types tls_prf_type;
-#else
-    int  (*supplicant_tls_prf)(const unsigned char *, size_t, const char *,
-                    const unsigned char *, size_t,
-                    unsigned char *, size_t);
-#endif
-    int resume;
-} eap_tls_keys;
-
-typedef struct
-{
-    void *usr_data;
-    char* peer_cn;
-    cy_tls_session_t *session; /* This session pointer is only used to resume connection for client, If application/library wants to resume connection it needs to pass pointer of previous stored session */
-    cy_tls_workspace_t context;
-    cy_tls_identity_t *identity;
-    cy_x509_crt_t *root_ca_certificates; /* Context specific root-ca-chain */
-    cy_entropy_context_t entropy;
-    cy_ctr_drbg_context_t ctr_drbg;
-    cy_ssl_config_t conf;
-    int resume;
-    eap_tls_keys eap_tls_keying;
-
-    /* Book-keeping information used for in-house use of TLS-security library */
-    uint8_t buffered_data[BUFFER_SIZE];
-    uint8_t* buffer_to_use;
-    uint32_t remaining_bytes;
-    uint32_t bytes_consumed;
-    uint32_t total_bytes;
-} cy_tls_context_t;
 
 /******************************************************
  *                      Function Prototypes
@@ -199,6 +151,16 @@ cy_rslt_t cy_tls_deinit_identity( cy_tls_identity_t* tls_identity );
  */
 cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, void* referee, cy_tls_certificate_verification_t verification );
 
+/** Cleanup TLS session.
+ *
+ * Cleanup up TLS session resources
+ *
+ * @param[in] tls_context  : The tls context to work with
+ *
+ * @return void
+ */
+void cy_tls_session_cleanup( cy_tls_context_t* tls_context );
+
 /**
  * @brief   This function uses CTR_DRBG to generate random data.
  *
@@ -219,13 +181,35 @@ cy_rslt_t cy_crypto_get_random( cy_tls_context_t *context, void* buffer, uint16_
  *
  * @param[in] tls_context  :  The tls context to work with
  * @param[in] label        :  The label to use.
+ * @param[in] context      :  application specific context;
+ * @param[in] context_len  :  Length of context.
  * @param mppe_keys        :  Output buffer.
  * @param size             :  The length of the output buffer.
  *
- * @return cy_rslt_t  : CY_RESULT_SUCCESS on success, refer to cy_result_mw.h in connectivity-utilities for error
+ * @return cy_rslt_t       : CY_RESULT_SUCCESS on success, refer to cy_result_mw.h in connectivity-utilities for error.
  *
  */
-void get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t* mppe_keys, int size);
+cy_rslt_t get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size);
+
+/**
+ * This function is used to initialize workspace context.
+ *
+ * @param[in]  tls_context   :  The tls context to work with.
+ *
+ * @return void
+ */
+void cy_tls_init_workspace_context( cy_tls_context_t *context );
+
+/**
+ * This function is used to get the negotiated TLS version.
+ *
+ * @param[in]  tls_context   :  The tls context to work with.
+ * @param[out] major_version :  TLS major version.
+ * @param[out] minor_version :  TLS minor version.
+ *
+ * @return cy_rslt_t         : CY_RESULT_SUCCESS on success, refer to cy_result_mw.h in connectivity-utilities for error
+ */
+cy_rslt_t cy_tls_get_versions( cy_tls_context_t* context, uint8_t *major_version, uint8_t *minor_version );
 
 /** @} */
 

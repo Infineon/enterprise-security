@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -56,7 +56,7 @@ typedef struct
     uint8_t ether_dhost[ETHERNET_ADDRESS_LENGTH];
     uint8_t ether_shost[ETHERNET_ADDRESS_LENGTH];
     uint16_t ether_type;
-} ether_header_t;
+} cy_ether_header_t;
 
 typedef struct
 {
@@ -67,13 +67,13 @@ typedef struct
 
 typedef struct
 {
-    ether_header_t ethernet;
+    cy_ether_header_t ethernet;
     eapol_header_t eapol;
 } eapol_packet_header_t;
 
 typedef struct
 {
-    ether_header_t ethernet;
+    cy_ether_header_t ethernet;
     eapol_header_t eapol;
     uint8_t data[1];
 } eapol_packet_t;
@@ -88,7 +88,7 @@ typedef struct
 
 typedef struct
 {
-    ether_header_t ethernet;
+    cy_ether_header_t ethernet;
     eapol_header_t eapol;
     eap_header_t eap;
     uint8_t data[1];
@@ -101,7 +101,7 @@ typedef struct
 
 typedef struct
 {
-    ether_header_t ethernet;
+    cy_ether_header_t ethernet;
     eapol_header_t eapol;
     eap_header_t eap;
     eap_tls_header_t eap_tls;

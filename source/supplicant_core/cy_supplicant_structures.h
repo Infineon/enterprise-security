@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -43,8 +43,10 @@ extern "C" {
 /******************************************************
  *                      Macros
  ******************************************************/
-#define SUPPLICANT_MAX_IDENTITY_LENGTH (32)
-#define SUPPLICANT_MAX_PASSWORD_LENGTH (64)
+#define SUPPLICANT_MAX_IDENTITY_LENGTH  (32)
+#define SUPPLICANT_MAX_PASSWORD_LENGTH  (64)
+
+#define SUPPLICANT_DEFS_MIN(x, y)       ((x) < (y) ? (x) : (y))
 
 /******************************************************
  *                 Type Definitions

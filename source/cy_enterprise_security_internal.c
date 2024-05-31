@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -342,7 +342,9 @@ cy_rslt_t cy_join_ent( cy_supplicant_instance_t *supplicant_instance )
     conn_info.tls_session = supplicant_instance->tls_context->session;
     conn_info.tls_identity = supplicant_instance->tls_identity;
     conn_info.context = supplicant_instance->tls_context;
-    conn_info.context->context.conf = NULL;
+
+    cy_tls_init_workspace_context( conn_info.context );
+
     conn_info.context->root_ca_certificates = NULL;
 
     conn_info.interface = whd_driver->iflist[ 0 ];
@@ -380,6 +382,17 @@ static whd_security_t convert_to_whd_security_type(cy_enterprise_security_auth_t
 
         case CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED:
             return WHD_SECURITY_WPA2_MIXED_ENT;
+
+#ifdef COMPONENT_CAT5
+        case CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_AES:
+            return WHD_SECURITY_WPA3_ENT;
+
+        case CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_192BIT:
+            return WHD_SECURITY_WPA3_192BIT_ENT;
+
+        case CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_AES_CCMP:
+            return WHD_SECURITY_WPA3_ENT_AES_CCMP;
+#endif
 
         default:
             return WHD_SECURITY_UNKNOWN;

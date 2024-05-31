@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -37,13 +37,10 @@
 extern "C" {
 #endif
 
-#include "cy_tls_abstraction.h"
 #include "cy_type_defs.h"
 #include "cy_supplicant_structures.h"
 #include "cy_peap.h"
 #include "cy_ttls.h"
-#include "mbedtls/md4.h"
-#include "mbedtls/des.h"
 
 /******************************************************
  *                  Typedef structures

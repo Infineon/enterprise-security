@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -42,7 +42,6 @@
 /******************************************************
  *              Function Prototypes
  ******************************************************/
-extern int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush );
 
 /******************************************************
  *              Function definations
@@ -111,6 +110,10 @@ cy_rslt_t leap_process_packet( leap_header *packet, supplicant_workspace_t *work
             response->reserved    = 0;
             response->count = LEAP_RESPONSE_LEN;
 
+            /* start clean */
+            memset(password_hash, 0, sizeof(password_hash));
+            memset(nt_reponse, 0, sizeof(nt_reponse));
+
             mschap_nt_password_hash( (char *)phase2->password, phase2->password_length, password_hash );
             mschap_challenge_response( challenge, password_hash, nt_reponse);
 
@@ -153,6 +156,11 @@ cy_rslt_t leap_process_packet( leap_header *packet, supplicant_workspace_t *work
         case SUPPLICANT_LEAP_REQUEST_CHALLENGE:
             CY_SUPPLICANT_TTLS_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n", __FILE__, __FUNCTION__, __LINE__);
             ap_response = (uint8_t *)(packet + 1);
+
+            /* start clean */
+            memset(password_hash, 0, sizeof(password_hash));
+            memset(password_hash_hash, 0, sizeof(password_hash_hash));
+            memset(nt_reponse, 0, sizeof(nt_reponse));
 
             mschap_nt_password_hash( (char *)phase2->password, phase2->password_length, password_hash );
             mschap_nt_password_hash( (char *)password_hash, phase2->password_length, password_hash_hash );
@@ -268,16 +276,18 @@ void supplicant_send_ttls_response_packet( supplicant_packet_t* packet, supplica
     record                = (tls_record_t*) ( header->data + length_field_overhead );
 
     data_length           = htobe16(record->length);
-
+#ifdef COMPONENT_MBEDTLS
     if( mbedtls_ssl_write( &workspace->tls_context->context , record->message, data_length ) < 0 )
     {
         return;
     }
-
     data_length = workspace->tls_context->context.out_msglen + sizeof(tls_record_header_t);
 
     memcpy(&record->type, workspace->tls_context->context.out_hdr, data_length);
 
+#elif COMPONENT_NETXSECURE
+    // TODO : Implement for Netxsecure
+#endif
 
     if ( length_field_overhead )
     {
@@ -302,10 +312,10 @@ supplicant_packet_t supplicant_create_ttls_response_packet( supplicant_packet_t*
     cy_rslt_t       result;
     tls_record_t*       record;
     avp_header_t*       avp_header;
-    uint16_t            header_space;
-    uint16_t            footer_pad_space;
     uint32_t            avp_length;
     eap_header_t        *inner_eap;
+    uint16_t            header_space        = 0;
+    uint16_t            footer_pad_space    = 0;
     supplicant_phase2_state_t* phase2_state = (supplicant_phase2_state_t*)workspace->ptr_phase2;
 
     supplicant_tls_calculate_overhead( workspace, data_length, &header_space, &footer_pad_space );
@@ -334,8 +344,9 @@ supplicant_packet_t supplicant_create_ttls_response_packet( supplicant_packet_t*
     /* TLS Header */
     record                = (tls_record_t*) ( header->data + length_field_overhead );
     record->type          = 23;
-    record->major_version = (uint8_t)workspace->tls_context->context.major_ver;
-    record->minor_version = (uint8_t)workspace->tls_context->context.minor_ver;
+
+    cy_tls_get_versions(workspace->tls_context, &record->major_version, &record->minor_version);
+
     record->length        = htobe16( sizeof( avp_header_t ) +  sizeof( eap_header_t ) + data_length );
 
     /*AVP Header */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -35,6 +35,8 @@
 #include "cy_enterprise_security_log.h"
 #include "cy_mschapv2.h"
 
+#include "cy_tls_abstraction.h"
+
 /******************************************************
  *                      Macros
  ******************************************************/
@@ -50,6 +52,7 @@
  ******************************************************/
 cy_rslt_t mschap_challenge_hash(uint8_t* peer_challenge, uint8_t* authenticator_challenge, char* user_name, uint8_t* challenge)
 {
+#ifdef COMPONENT_MBEDTLS
     mbedtls_sha1_context sha1_ctx;
     uint8_t hash_value[SHA1_LENGTH];
     CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n",__FILE__,__FUNCTION__,__LINE__);
@@ -63,19 +66,28 @@ cy_rslt_t mschap_challenge_hash(uint8_t* peer_challenge, uint8_t* authenticator_
     mbedtls_sha1_free( &sha1_ctx );
 
     memcpy( challenge, hash_value, 8);
+#endif
 
+#ifdef COMPONENT_NETXSECURE
+    /* ToDo: Implement for netxsecure */
+#endif
     return CY_RSLT_SUCCESS;
 }
 
 cy_rslt_t mschap_nt_password_hash( char* password, uint16_t length, uint8_t* password_hash )
 {
+#ifdef COMPONENT_MBEDTLS
     mbedtls_md4_context md4_ctx;
     CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n",__FILE__,__FUNCTION__,__LINE__);
 
     mbedtls_md4_starts_ret( &md4_ctx );
     mbedtls_md4_update_ret( &md4_ctx, (unsigned char *)password, length );
     mbedtls_md4_finish_ret( &md4_ctx, (unsigned char *)password_hash );
+#endif
 
+#ifdef COMPONENT_NETXSECURE
+    /* ToDo: Implement for netxsecure */
+#endif
     return CY_RSLT_SUCCESS;
 }
 
@@ -96,6 +108,7 @@ cy_rslt_t mschap_permute_key(uint8_t* key56, uint8_t* key64)
 
 cy_rslt_t mschap_des_encrypt( uint8_t* clear, uint8_t* key, uint8_t* cypher)
 {
+#ifdef COMPONENT_MBEDTLS
     mbedtls_des_context des_ctx;
     uint8_t key64[ 8 ];
     CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n",__FILE__,__FUNCTION__,__LINE__);
@@ -105,7 +118,11 @@ cy_rslt_t mschap_des_encrypt( uint8_t* clear, uint8_t* key, uint8_t* cypher)
     mbedtls_des_setkey_enc( &des_ctx, key64 );
     mbedtls_des_crypt_ecb(&des_ctx, clear, cypher);
     mbedtls_des_free( &des_ctx );
+#endif
 
+#ifdef COMPONENT_NETXSECURE
+    /* ToDo: Implement for netxsecure */
+#endif
     return CY_RSLT_SUCCESS;
 }
 
@@ -133,6 +150,9 @@ cy_rslt_t mschap_generate_nt_response(uint8_t* authenticator_challenge, uint8_t*
     uint8_t challenge[8];
     uint8_t password_hash[16];
     CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n",__FILE__,__FUNCTION__,__LINE__);
+
+    memset(password_hash, 0, sizeof(password_hash));
+    memset(challenge, 0, sizeof(challenge));
 
     mschap_challenge_hash( peer_challenge, authenticator_challenge, user_name, challenge);
     mschap_nt_password_hash( password, password_length, password_hash );

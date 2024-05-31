@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -227,6 +227,13 @@ cy_rslt_t supplicant_set_passphrase( whd_interface_t interface, const uint8_t* s
         return CY_RSLT_SUCCESS;
     }
     return CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ERROR;
+}
+
+cy_rslt_t supplicant_set_pmk( whd_interface_t interface, const uint8_t* security_key, uint8_t key_length )
+{
+    whd_result_t result = whd_wifi_set_pmk( interface,security_key, key_length );
+
+    return ( result == WHD_SUCCESS ? CY_RSLT_SUCCESS : CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ERROR );
 }
 
 cy_rslt_t suppliant_emac_register_eapol_packet_handler(cy_ent_sec_eapol_packet_handler_t eapol_packet_handler)

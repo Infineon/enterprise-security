@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -34,13 +34,12 @@
 #include "cy_enterprise_security_log.h"
 #include "cy_tls_abstraction.h"
 #include "cy_supplicant_structures.h"
+#include "cy_supplicant_process_et.h"
 
 /******************************************************
  *                      Macros
  ******************************************************/
 #define TLS_WRAPPER_DEBUG  cy_enterprise_security_log_msg
-
-#define MIN(x,y) ((x) < (y) ? (x) : (y))
 
 #define CY_SUPPLICANT_TLS_DUMP_BYTES( x )   //printf x
 //#define ENABLE_TLS_WRAPPER_DUMP
@@ -69,9 +68,7 @@ static void tls_dump_bytes ( const uint8_t* bptr, uint32_t len );
 #define tls_dump_bytes( bptr, len )
 #endif
 
-extern cy_rslt_t supplicant_host_send_eap_tls_fragments( supplicant_workspace_t* workspace, uint8_t* buffer, uint16_t length );
 extern tls_agent_packet_t* supplicant_receive_eap_tls_packet( void* workspace_in, uint32_t* length, uint32_t timeout );
-cy_rslt_t supplicant_host_get_tls_data(supplicant_workspace_t* workspace, supplicant_packet_t eapol_packet, uint16_t offset, uint8_t** data, uint16_t* fragment_available_data_length, uint16_t *total_available_data_length );
 
 struct options
 {
@@ -83,6 +80,7 @@ struct options
     int         transport;     /* TLS or DTLS?                      */
 } opt;
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
 #if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
 static int eap_tls_key_derivation( void *p_expkey, const unsigned char *ms, const unsigned char *kb, size_t maclen, size_t keylen, size_t ivlen, const unsigned char client_random[32], const unsigned char server_random[32], mbedtls_tls_prf_types tls_prf_type )
 {
@@ -100,7 +98,7 @@ static int eap_tls_key_derivation( void *p_expkey, const unsigned char *ms, cons
     return( 0 );
 }
 #else
- int eap_tls_key_derivation( void *p_expkey, const unsigned char *ms, const unsigned char *kb, size_t maclen, size_t keylen,  size_t ivlen )
+static int eap_tls_key_derivation( void *p_expkey, const unsigned char *ms, const unsigned char *kb, size_t maclen, size_t keylen,  size_t ivlen )
 {
     cy_tls_context_t* tls_context = p_expkey;
     eap_tls_keys *keys = (eap_tls_keys *)&tls_context->eap_tls_keying;
@@ -116,6 +114,7 @@ static int eap_tls_key_derivation( void *p_expkey, const unsigned char *ms, cons
     return( 0 );
 }
 #endif /* MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT */
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #ifdef ENABLE_TLS_WRAPPER_DUMP
 static void tls_dump_bytes( const uint8_t* bptr, uint32_t len )
@@ -146,17 +145,6 @@ static void mbedtls_debug( void *ctx, int level, const char *file, int line, con
 }
 #endif /* MBEDTLS_DEBUG_C */
 
-cy_rslt_t supplicant_host_get_tls_data( supplicant_workspace_t* workspace,supplicant_packet_t eapol_packet, uint16_t offset, uint8_t** data, uint16_t* fragment_available_data_length, uint16_t *total_available_data_length )
-{
-    uint16_t packet_length = supplicant_host_get_packet_size(workspace->interface->whd_driver, eapol_packet );
-
-    *data = supplicant_host_get_data( workspace->interface->whd_driver,eapol_packet ) + offset;
-    *total_available_data_length    = packet_length - offset;
-    *fragment_available_data_length = *total_available_data_length;
-
-    return CY_RSLT_SUCCESS;
-}
-
 int eap_ssl_receive_packet( void *ctx, unsigned char *buf, size_t len )
 {
     supplicant_workspace_t* workspace = (supplicant_workspace_t*) ctx;
@@ -173,12 +161,12 @@ int eap_ssl_receive_packet( void *ctx, unsigned char *buf, size_t len )
         if( workspace->tls_context->remaining_bytes > 0)
         {
             int x = workspace->tls_context->remaining_bytes;
-            memcpy( temp_buf, workspace->tls_context->buffer_to_use, MIN( x, requested_bytes ) );
-            temp_buf = temp_buf + MIN( x, requested_bytes );
-            workspace->tls_context->buffer_to_use = workspace->tls_context->buffer_to_use + MIN( x, requested_bytes );
-            workspace->tls_context->remaining_bytes = workspace->tls_context->remaining_bytes - MIN( x, requested_bytes );
-            workspace->tls_context->bytes_consumed =  workspace->tls_context->bytes_consumed +  MIN( x, requested_bytes );
-            requested_bytes = requested_bytes -  MIN( x, requested_bytes );
+            memcpy( temp_buf, workspace->tls_context->buffer_to_use, SUPPLICANT_DEFS_MIN( x, requested_bytes ) );
+            temp_buf = temp_buf + SUPPLICANT_DEFS_MIN( x, requested_bytes );
+            workspace->tls_context->buffer_to_use = workspace->tls_context->buffer_to_use + SUPPLICANT_DEFS_MIN( x, requested_bytes );
+            workspace->tls_context->remaining_bytes = workspace->tls_context->remaining_bytes - SUPPLICANT_DEFS_MIN( x, requested_bytes );
+            workspace->tls_context->bytes_consumed =  workspace->tls_context->bytes_consumed +  SUPPLICANT_DEFS_MIN( x, requested_bytes );
+            requested_bytes = requested_bytes -  SUPPLICANT_DEFS_MIN( x, requested_bytes );
 
         }
         else
@@ -191,12 +179,12 @@ int eap_ssl_receive_packet( void *ctx, unsigned char *buf, size_t len )
             }
 
             supplicant_host_get_tls_data( workspace, (supplicant_packet_t) packet, 0 , &data, &temp_length, &temp_available_length );
-            workspace->tls_context->buffer_to_use = workspace->tls_context->buffered_data; 
+            workspace->tls_context->buffer_to_use = workspace->tls_context->buffered_data;
             memcpy( workspace->tls_context->buffer_to_use, data, length );
             workspace->tls_context->bytes_consumed = 0;
             workspace->tls_context->remaining_bytes = length;
             workspace->tls_context->total_bytes = length;
-         
+
             supplicant_host_free_packet( workspace->interface->whd_driver,packet );
         }
     }
@@ -226,6 +214,89 @@ int eap_ssl_receive_packet( void *ctx, unsigned char *buf, size_t len )
     return ((int) len);
 }
 
+static cy_rslt_t supplicant_host_send_eap_tls_fragments( supplicant_workspace_t* workspace, uint8_t* buffer, uint16_t length )
+{
+    //CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "TLS handshake state: %u\r\n", (unsigned int) workspace->tls_context->context.state);
+
+    /* Send the alert message to peer */
+    if(workspace->tls_context->context.out_msgtype == MBEDTLS_SSL_MSG_ALERT)
+    {
+        memset( workspace->buffer, 0, workspace->buffer_size );
+
+        /* Point the buffer pointer at the start of the buffer */
+        workspace->data_start   = workspace->buffer;
+
+        memcpy(workspace->data_start, buffer, length);
+
+        /* Point data at the start of the buffer */
+        workspace->data_end = workspace->data_start + length;
+    }
+    else
+    {
+        if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_HELLO) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
+                ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) &&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
+        {
+
+            /* Mark that we already started a record, so that a
+             * Certificate verify won't create it's own if the certificate is already sent.
+             */
+            workspace->have_packet = 1;
+            memset( workspace->buffer, 0, workspace->buffer_size );
+
+            /* Point the buffer pointer at the start of the buffer */
+
+            workspace->data_start   = workspace->buffer;
+
+            memcpy(workspace->data_start, buffer, length);
+
+            /* Point data at the start of the buffer */
+            workspace->data_end = workspace->data_start + length;
+
+            /* If this is the client certificate exchange or change cipher spec with session resumption then return so the TLS engine provides the rest of the handshake packets */
+            if ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
+                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
+                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
+                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) && ( workspace->tls_context->resume == 1 ) ) )
+            {
+                return CY_RSLT_SUCCESS;
+            }
+
+        }
+        else if ( ( workspace->tls_context->context.state > MBEDTLS_SSL_CLIENT_CERTIFICATE )  &&  ( workspace->tls_context->context.state < MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
+        {
+            /* Append the handshake message and return for more unless it's the last message */
+            memcpy(workspace->data_end, buffer, length);
+            workspace->data_end += length;
+            return CY_RSLT_SUCCESS;
+        }
+        else if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ||
+                ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_FLUSH_BUFFERS) || ( workspace->tls_context->context.state == MBEDTLS_SSL_HANDSHAKE_WRAPUP) )&&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
+        {
+            memcpy(workspace->data_end, buffer, length);
+            workspace->data_end += length;
+
+            if ( workspace->tls_context->resume == 1 )
+            {
+#if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
+                workspace->cipher_flags = workspace->tls_context->context.handshake->ciphersuite_info->flags;
+#else
+                workspace->cipher_flags = workspace->tls_context->context.transform_out->ciphersuite_info->flags;
+#endif
+            }
+        }
+        else
+        {
+            TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Unexpected data to be fragmented\r\n");
+            tls_dump_bytes( buffer, length );
+            return CY_RSLT_SUCCESS;
+        }
+    }
+    return (supplicant_fragment_and_queue_eap_response(workspace));
+}
+
 int eap_ssl_flush_output( void* context, const uint8_t* buffer, size_t length )
 {
     supplicant_workspace_t* supplicant = (supplicant_workspace_t*) context;
@@ -236,6 +307,16 @@ int eap_ssl_flush_output( void* context, const uint8_t* buffer, size_t length )
         return 0;
     }
     return length;
+}
+
+/*
+ * @func  : cy_tls_session_cleanup
+ *
+ * @brief : Cleanup existing tls session.
+ */
+void cy_tls_session_cleanup( cy_tls_context_t* tls_context )
+{
+    /* No Cleanup required */
 }
 
 cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, void* referee, cy_tls_certificate_verification_t verification )
@@ -395,8 +476,10 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
 }
 
 #if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
-void get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t* mppe_keys, int size)
+cy_rslt_t get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size)
 {
+    (void)context;
+    (void)context_len;
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if ( mbedtls_ssl_tls_prf(tls_context->eap_tls_keying.tls_prf_type,
             tls_context->eap_tls_keying.master_secret,
@@ -405,28 +488,37 @@ void get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t* mpp
             mppe_keys, size) != 0)
     {
         TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, " failed\n  ! mbedtls_ssl_tls_prf returned\r\n");
-        return;
+        return CY_RSLT_MODULE_TLS_ERROR;
     }
 
     TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "EAP-TLS key material is: \n");
     tls_dump_bytes(mppe_keys,size);
     TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\n");
+    return CY_RSLT_SUCCESS;
+#else
+    return CY_RSLT_MODULE_TLS_UNSUPPORTED;
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 }
 #else
-void get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t* mppe_keys, int size)
+cy_rslt_t get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size)
 {
+    (void)context;
+    (void)context_len;
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if ( tls_context->eap_tls_keying.supplicant_tls_prf( tls_context->eap_tls_keying.master_secret, sizeof(tls_context->eap_tls_keying.master_secret), label, tls_context->eap_tls_keying.randbytes,
-    		sizeof(tls_context->eap_tls_keying.randbytes), mppe_keys, size ) != 0 )
+            sizeof(tls_context->eap_tls_keying.randbytes), mppe_keys, size ) != 0 )
     {
-            TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, " failed\n  ! mbedtls_ssl_tls_prf returned\r\n");
-            return;
+        TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, " failed\n  ! mbedtls_ssl_tls_prf returned\r\n");
+        return CY_RSLT_MODULE_TLS_ERROR;
     }
 
     TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "EAP-TLS key material is: \n");
     tls_dump_bytes(mppe_keys,size);
     TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\n");
+
+    return CY_RSLT_SUCCESS;
+#else
+    return CY_RSLT_MODULE_TLS_UNSUPPORTED;
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 }
 #endif /* MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT */
@@ -492,6 +584,9 @@ cy_rslt_t cy_tls_init_context(cy_tls_context_t* tls_context, cy_tls_identity_t* 
     }
     tls_context->identity = identity;
     tls_context->peer_cn = peer_cn;
+
+    /* tls13 not added yet */
+    tls_context->tls_v13 = false;
     return CY_RSLT_SUCCESS;
 }
 
@@ -630,5 +725,26 @@ cy_rslt_t cy_crypto_get_random( cy_tls_context_t *context, void* buffer, uint16_
     {
         return CY_RSLT_MODULE_TLS_ERROR;
     }
+    return CY_RSLT_SUCCESS;
+}
+
+void cy_tls_init_workspace_context( cy_tls_context_t *context )
+{
+    if( context )
+    {
+        context->context.conf = NULL;
+    }
+}
+
+cy_rslt_t cy_tls_get_versions(cy_tls_context_t* context, uint8_t *major_version, uint8_t *minor_version)
+{
+    if(context == NULL || major_version == NULL || minor_version == NULL)
+    {
+        return CY_RSLT_MODULE_TLS_BADARG;
+    }
+
+    *major_version = (uint8_t)context->context.major_ver;
+    *minor_version = (uint8_t)context->context.minor_ver;
+
     return CY_RSLT_SUCCESS;
 }

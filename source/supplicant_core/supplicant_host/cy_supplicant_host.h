@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -41,7 +41,15 @@ extern "C" {
 #include "cy_supplicant_core_constants.h"
 
 #include "whd.h"
+
+/*TODO : Move to Abstraction */
+#ifdef COMPONENT_LWIP
 #include "lwip/pbuf.h"
+#endif
+
+#ifdef COMPONENT_NETXDUO
+#include <nx_api.h>
+#endif
 /******************************************************
  *                      Macros
  ******************************************************/
@@ -110,7 +118,15 @@ typedef enum
 
 typedef void* supplicant_packet_t;
 
+
+/*TODO : Move to Abstraction */
+#ifdef COMPONENT_LWIP
 typedef struct pbuf supplicant_buffer_t;
+#endif
+
+#ifdef COMPONENT_NETXDUO
+typedef struct NX_PACKET_STRUCT supplicant_buffer_t;
+#endif
 
 typedef void (*cy_ent_sec_eapol_packet_handler_t)(whd_interface_t interface, whd_buffer_t buffer);
 /******************************************************
@@ -174,7 +190,8 @@ uint32_t  supplicant_host_get_timer       ( void* workspace );
 cy_rslt_t supplicant_queue_message_packet ( void* workspace, supplicant_event_t type, supplicant_packet_t packet );
 cy_rslt_t supplicant_queue_message_uint   ( void* workspace, supplicant_event_t type, uint32_t value );
 void      supplicant_get_bssid            ( whd_interface_t interface, whd_mac_t* mac );
-cy_rslt_t supplicant_set_passphrase       ( whd_interface_t interface,const uint8_t* security_key, uint8_t key_length );
+cy_rslt_t supplicant_set_passphrase       ( whd_interface_t interface, const uint8_t* security_key, uint8_t key_length );
+cy_rslt_t supplicant_set_pmk              ( whd_interface_t interface, const uint8_t* security_key, uint8_t key_length );
 cy_rslt_t suppliant_emac_register_eapol_packet_handler(cy_ent_sec_eapol_packet_handler_t eapol_packet_handler);
 void      supplicant_host_hex_bytes_to_chars( char* cptr, const uint8_t* bptr, uint32_t blen );
 cy_rslt_t supplicant_queue_message        ( void* host_workspace, supplicant_event_t type, supplicant_event_message_data_t data );

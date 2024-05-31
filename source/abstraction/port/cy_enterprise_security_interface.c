@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -32,46 +32,27 @@
  */
 
 /** @file
- *  Implements user functions for joining/leaving enterprise security network
+ *  Implements user functions for joining/leaving enterprise security network.
  *
  *  This file provides end-user functions which allow joining or leaving
  *  enterprise security network.
  *
  */
 
-#include "cy_enterprise_security.hpp"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "cy_enterprise_security_log.h"
-#include "cy_wifi_abstraction.h"
 #include "cy_enterprise_security_internal.h"
+#include "cy_wifi_abstraction.h"
 #include "cy_supplicant_core_constants.h"
+#include "cy_supplicant_process_et.h"
+#include "cy_wcm.h"
 
+extern cy_wcm_ip_setting_t* static_ip_settings;
 
-EnterpriseSecurity::EnterpriseSecurity( cy_enterprise_security_parameters_t *ent_parameters )
+/* This API is used for internal purpose to pass the static IP settings */
+cy_rslt_t cy_enterprise_security_set_static_ip( cy_wcm_ip_setting_t* ip_settings )
 {
-    EnterpriseSecurity::handle = NULL;
-
-    wifi_on();
-    cy_enterprise_security_create( &(EnterpriseSecurity::handle), ent_parameters );
-}
-
-EnterpriseSecurity::~EnterpriseSecurity()
-{
-    cy_enterprise_security_delete( &(EnterpriseSecurity::handle) );
-}
-
-cy_rslt_t EnterpriseSecurity::join( void )
-{
-    return cy_enterprise_security_join( EnterpriseSecurity::handle );
-}
-
-cy_rslt_t EnterpriseSecurity::leave( void )
-{
-    return cy_enterprise_security_leave( EnterpriseSecurity::handle );
+    static_ip_settings = ip_settings;
+    return CY_RSLT_SUCCESS;
 }
 
 cy_rslt_t cy_enterprise_security_join( cy_enterprise_security_t handle )
@@ -123,7 +104,7 @@ cy_rslt_t cy_enterprise_security_join( cy_enterprise_security_t handle )
     return CY_RSLT_SUCCESS;
 }
 
-cy_rslt_t cy_enterprise_security_leave( cy_enterprise_security_t handle )
+cy_rslt_t cy_enterprise_security_leave(cy_enterprise_security_t handle)
 {
     cy_rslt_t result = CY_RSLT_SUCCESS;
     cy_supplicant_instance_t *supplicant_instance;
@@ -143,7 +124,7 @@ cy_rslt_t cy_enterprise_security_leave( cy_enterprise_security_t handle )
     }
 
     result = cy_leave_ent( supplicant_instance );
-    if( result != CY_RSLT_SUCCESS )
+    if( result !=  CY_RSLT_SUCCESS )
     {
         cy_enterprise_security_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "ERROR: cy_leave_ent failed with error = [%u]\n", (unsigned int)result);
         cy_supplicant_free( supplicant_instance );
@@ -160,10 +141,8 @@ cy_rslt_t cy_enterprise_security_leave( cy_enterprise_security_t handle )
 
     (void) cy_supplicant_free( supplicant_instance );
     cy_enterprise_security_log_msg(CYLF_MIDDLEWARE, CY_LOG_INFO, "Successfully left Enterprise Security network.\r\n");
+
+    static_ip_settings = NULL;
+
     return CY_RSLT_SUCCESS;
 }
-
-#ifdef __cplusplus
-}
-#endif
-

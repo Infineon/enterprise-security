@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -31,29 +31,54 @@
  * so agrees to indemnify Cypress against all liability.
  */
 
-/** @file
- *  Implements functions for calling RTOS APIs in AnyCloud
- *
- *  This file provides specific RTOS APIs
- *
- */
+#pragma once
 
-#include <stdlib.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "cy_rtos_abstraction.h"
+#include <nx_secure_tls_api.h>
+#include <stdbool.h>
+/******************************************************
+ *                      Macros
+ ******************************************************/
 
-void* cy_rtos_malloc( uint32_t size )
+/******************************************************
+ *                    Typedefs
+ ******************************************************/
+
+/* IMPLEMENTATION NOTE: Core supplicant implementation should not access any of the structure members defined in this file */
+
+typedef NX_SECURE_TLS_SESSION cy_tls_session_t;
+typedef NX_SECURE_X509_CERT   cy_x509_crt_t;
+typedef NX_SECURE_TLS_SESSION cy_tls_workspace_t;
+
+typedef struct
 {
-    return malloc( size );
-}
+    NX_SECURE_X509_CERT     certificate;
+    uint8_t                 *certificate_der;
+    uint8_t                 *private_key_der;
+    uint8_t                 is_client_auth;
+} cy_tls_identity_t;
 
-void* cy_rtos_calloc( uint32_t num, uint32_t size )
+typedef struct
 {
-    return calloc( num, size );
-}
+    void                    *usr_data;
+    char                    *peer_cn;
+    cy_tls_session_t        *session;
+    cy_tls_workspace_t      context;
+    cy_tls_identity_t       *identity;
+    cy_x509_crt_t           *root_ca_certificates;
+    uint8_t                 *root_ca_cert_der;
+    int8_t                  *tls_metadata;
+    uint8_t                 *tls_packet_buffer;
+    uint8_t                 *certificate_buffer;
+    int32_t                 resume;
+    bool                    tls_handshake_successful;
+    bool                    tls_v13;
+    uint8_t                 expected_pkt_count;
+} cy_tls_context_t;
 
-void cy_rtos_free( void* p )
-{
-    free( p );
-}
-
+#ifdef __cplusplus
+} /*extern "C" */
+#endif
