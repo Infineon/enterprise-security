@@ -43,7 +43,6 @@
 /******************************************************
  *                      Macros
  ******************************************************/
-#define CY_TLS_UNUSED_PARAM(x)      (void)(x)
 
 /* Maximum TLS record size */
 #define CY_TLS_PACKET_BUFFER_SIZE (7*1024)
@@ -74,15 +73,12 @@
 
 #define TLS13_EXPORTER_LABEL                    "exporter"
 
+
+#define CY_TLS_DEFAULT_WAIT                     NX_TIMEOUT(1000)
+
 /******************************************************
  *                      Debugging
  ******************************************************/
-//#define ENABLE_TLS_WRAPPER_DUMP
-#define TLS_WRAPPER_DEBUG                   cy_enterprise_security_log_msg
-
-#ifdef ENABLE_TLS_WRAPPER_DUMP
-#define CY_SUPPLICANT_TLS_DUMP_BYTES( x )   printf x
-#endif
 
 static const unsigned char base64_dec_map[128] =
 {
@@ -113,7 +109,6 @@ typedef enum
 /******************************************************
  *                    Variables
  ******************************************************/
-static bool netx_tls_init_done = false;
 
 /******************************************************
  *                    Function prototypes
@@ -421,18 +416,10 @@ static cy_rslt_t tls_load_certificate_key ( cy_tls_identity_t* identity,  const 
         return CY_RSLT_MODULE_TLS_BADARG;
     }
 
-    if( ((certificate_data == NULL) || (certificate_length == 0)) || ((private_key == NULL) || (key_length == 0)) )
+    if( ((certificate_data == NULL) || (certificate_length == 0)))
     {
-        TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "[%s][%d] certificate or private keys are empty \r\n", __func__, __LINE__ );
-        return CY_RSLT_MODULE_TLS_BAD_INPUT_DATA;
-    }
-
-    /* Find private key type */
-    error = cy_tls_parse_private_key( private_key, &private_key_type );
-    if( error == -1 )
-    {
-        TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "[%s][%d] Invalid private keys \r\n", __func__, __LINE__ );
-        return CY_RSLT_MODULE_TLS_PARSE_KEY;
+        /* This is a success case as some methods doesn't require client cert */
+        return CY_RSLT_SUCCESS;
     }
 
     /* Allocate memory for certificate's DER data. */
@@ -441,33 +428,46 @@ static cy_rslt_t tls_load_certificate_key ( cy_tls_identity_t* identity,  const 
     {
         return CY_RSLT_MODULE_TLS_OUT_OF_HEAP_SPACE;
     }
-
-    /* Allocate memory for privatekey's DER data. */
-    identity->private_key_der = (uint8_t*)mem_calloc(key_length, 1);
-    if( identity->private_key_der == NULL )
-    {
-        mem_free( (void**)&identity->certificate_der );
-        return CY_RSLT_MODULE_TLS_OUT_OF_HEAP_SPACE;
-    }
-
     /* Convert PEM certificate to DER format */
     der_cert_len = certificate_length;
     error = cy_tls_convert_pem_to_der( (const unsigned char *)certificate_data, certificate_length, CY_TLS_PEM_TYPE_CERT, identity->certificate_der, &der_cert_len );
     if( error != 0 )
     {
         mem_free( (void**)&identity->certificate_der );
-        mem_free( (void**)&identity->private_key_der );
         return CY_RSLT_MODULE_TLS_PARSE_CERTIFICATE;
     }
 
-    /* Convert PEM key to DER format */
-    der_key_len = key_length;
-    error = cy_tls_convert_pem_to_der( (const unsigned char *)private_key, key_length, CY_TLS_PEM_TYPE_KEY, identity->private_key_der, &der_key_len );
-    if( error != 0 )
+    identity->private_key_der = NULL;
+
+    /* Check for optional private key */
+    if ((private_key != NULL) && (key_length != 0))
     {
-        mem_free( (void**)&identity->certificate_der );
-        mem_free( (void**)&identity->private_key_der );
-        return CY_RSLT_MODULE_TLS_PARSE_CERTIFICATE;
+        /* Find private key type */
+        error = cy_tls_parse_private_key( private_key, &private_key_type );
+        if( error == -1 )
+        {
+            TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "[%s][%d] Invalid private keys \r\n", __func__, __LINE__ );
+            mem_free( (void**)&identity->certificate_der );
+            return CY_RSLT_MODULE_TLS_PARSE_KEY;
+        }
+
+        /* Allocate memory for privatekey's DER data. */
+        identity->private_key_der = (uint8_t*)mem_calloc(key_length, 1);
+        if( identity->private_key_der == NULL )
+        {
+            mem_free( (void**)&identity->certificate_der );
+            return CY_RSLT_MODULE_TLS_OUT_OF_HEAP_SPACE;
+        }
+
+        /* Convert PEM key to DER format */
+        der_key_len = key_length;
+        error = cy_tls_convert_pem_to_der( (const unsigned char *)private_key, key_length, CY_TLS_PEM_TYPE_KEY, identity->private_key_der, &der_key_len );
+        if( error != 0 )
+        {
+            mem_free( (void**)&identity->certificate_der );
+            mem_free( (void**)&identity->private_key_der );
+            return CY_RSLT_MODULE_TLS_PARSE_CERTIFICATE;
+        }
     }
 
     /* Initialize the certificates */
@@ -830,24 +830,28 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
 
     if(tls_context->tls_v13)
     {
-        /* tls 13 eap requiers a 0x00 data at the end of transfer */
+        /* tls 13 eap-tls requiers a 0x00 data at the end of transfer */
         NX_PACKET *packet = NULL;
+        supplicant_workspace_t* workspace = (supplicant_workspace_t*)referee;
 
-        error = nx_secure_tls_session_receive(&tls_context->context, &packet, NX_TIMEOUT(1000));
-        if( error != NX_SUCCESS )
+        if( CY_ENTERPRISE_SECURITY_EAP_TYPE_TLS == workspace->eap_type )
         {
-            TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "Timeout waiting for TLS handshake success\r\n" );
-            result = CY_RSLT_MODULE_TLS_ERROR;
-            goto cleanup;
-        }
-        else if (packet->nx_packet_length != 1 || packet->nx_packet_prepend_ptr[0] != 0x00 )
-        {
-            TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "Invalid TLS handshake success msg\r\n" );
-            result = CY_RSLT_MODULE_TLS_ERROR;
+            error = nx_secure_tls_session_receive(&tls_context->context, &packet, NX_TIMEOUT(1000));
+            if( error != NX_SUCCESS )
+            {
+                TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "Timeout waiting for TLS handshake success\r\n" );
+                result = CY_RSLT_MODULE_TLS_ERROR;
+                goto cleanup;
+            }
+            else if ( packet->nx_packet_length != 1 || packet->nx_packet_prepend_ptr[0] != 0x00 )
+            {
+                TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "Invalid TLS handshake success msg\r\n" );
+                result = CY_RSLT_MODULE_TLS_ERROR;
+                nx_packet_release(packet);
+                goto cleanup;
+            }
             nx_packet_release(packet);
-            goto cleanup;
         }
-        nx_packet_release(packet);
     }
     tls_context->tls_handshake_successful = true;
     TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_DEBUG, "TLS handshake successful \r\n" );
@@ -1354,11 +1358,11 @@ static cy_rslt_t get_tls12_mppe_key( NX_SECURE_TLS_SESSION *tls_session, const c
 }
 
 /*
- * @func  : get_mppe_key
+ * @func  : cy_tls_get_mppe_key
  *
  * @brief : Generate MPPE key to be used for wifi handshake.
  */
-cy_rslt_t get_mppe_key( cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size )
+cy_rslt_t cy_tls_get_mppe_key( cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size )
 {
     cy_rslt_t result                    = CY_RSLT_MODULE_TLS_UNSUPPORTED;
     NX_SECURE_TLS_SESSION *tls_session  = &tls_context->context;
@@ -1395,6 +1399,8 @@ cy_rslt_t get_mppe_key( cy_tls_context_t *tls_context, const char* label, uint8_
  */
 cy_rslt_t cy_tls_init_context( cy_tls_context_t* tls_context, cy_tls_identity_t* identity, char* peer_cn )
 {
+    static bool netx_tls_init_done = false;
+
     if( tls_context == NULL )
     {
         TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "[%s][%d] Invalid TLS context\r\n", __func__, __LINE__ );
@@ -1542,6 +1548,8 @@ cy_rslt_t cy_tls_init_identity( cy_tls_identity_t* identity, const char* private
                                 const uint32_t key_length, const uint8_t* certificate_data,
                                 uint32_t certificate_length )
 {
+    cy_rslt_t res;
+
     if( identity == NULL )
     {
         TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR,
@@ -1551,7 +1559,8 @@ cy_rslt_t cy_tls_init_identity( cy_tls_identity_t* identity, const char* private
 
     memset( identity, 0, sizeof( cy_tls_identity_t ) );
 
-    if( tls_load_certificate_key( identity, certificate_data, certificate_length, private_key, key_length ) != CY_RSLT_SUCCESS )
+    res = tls_load_certificate_key( identity, certificate_data, certificate_length, private_key, key_length );
+    if( res != CY_RSLT_SUCCESS )
     {
         TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR,
                 "[%s][%d]  Failed to load certificate & private key \n", __func__, __LINE__ );
@@ -1589,12 +1598,34 @@ cy_rslt_t cy_tls_deinit_identity(cy_tls_identity_t* identity)
 /*
  * @func  : cy_tls_receive_eap_packet
  *
- * @brief : Receive EAP packet from the tls context
+ * @brief : Receive EAP packet from the tls session
  */
 cy_rslt_t cy_tls_receive_eap_packet( supplicant_workspace_t* supplicant, supplicant_packet_t* packet )
 {
-    /* TODO : Implement the function for NETX */
-    return CY_RSLT_ENTERPRISE_SECURITY_ERROR;
+    UINT error;
+
+    error = nx_secure_tls_session_receive(&supplicant->tls_context->context, (NX_PACKET**)packet, NX_TIMEOUT(1000));
+
+    if (error != NX_SUCCESS)
+    {
+        return CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR;
+    }
+    return CY_RSLT_SUCCESS;
+}
+
+/*
+ * @func  : cy_tls_free_eap_packet
+ *
+ * @brief : Free-up packet.
+ */
+void cy_tls_free_eap_packet (void *packet)
+{
+    NX_PACKET *pkt = (NX_PACKET*)packet;
+
+    if ( pkt )
+    {
+        nx_packet_release( pkt );
+    }
 }
 
 /*
@@ -1662,18 +1693,342 @@ void cy_tls_init_workspace_context( cy_tls_context_t *context )
  *
  * @brief : This function is used to get the negotiated TLS version
  */
-cy_rslt_t cy_tls_get_versions(cy_tls_context_t* context, uint8_t *major_version, uint8_t *minor_version)
+cy_rslt_t cy_tls_get_versions(cy_tls_context_t* tls_context, uint8_t *major_version, uint8_t *minor_version)
 {
-    if(context == NULL || major_version == NULL || minor_version == NULL)
+    if(tls_context == NULL || major_version == NULL || minor_version == NULL)
     {
         return CY_RSLT_MODULE_TLS_BADARG;
     }
 
-    CY_TLS_UNUSED_PARAM(context);
+    *major_version = (UCHAR)((tls_context->context.nx_secure_tls_protocol_version & 0xFF00) >> 8);
+    *minor_version = (UCHAR)(tls_context->context.nx_secure_tls_protocol_version & 0x00FF);
 
-    *major_version = 0;
-    *minor_version = 0;
+    return CY_RSLT_SUCCESS;
+}
 
-    /* TODO : Implement for Netx Secure */
+/*
+ * @func  : cy_tls_calculate_overhead
+ *
+ * @brief : Calculates the maximium amount of payload that can fit in a given sized buffer
+ */
+cy_rslt_t cy_tls_calculate_overhead( void *work, cy_tls_context_t* tls_context, uint16_t available_space, uint16_t* header, uint16_t* footer)
+{
+    UINT status;
+    USHORT iv_size = 0;
+    cy_tls_workspace_t* context;
+
+    CY_TLS_UNUSED_PARAM(work);
+
+    if( tls_context == NULL || header == NULL || footer == NULL )
+    {
+        return CY_RSLT_MODULE_TLS_BADARG;
+    }
+
+    *header = 0;
+    *footer = 0;
+
+    context = &tls_context->context;
+
+    if( context->nx_secure_tls_client_state == NX_SECURE_TLS_CLIENT_STATE_SERVERHELLO_DONE ||
+                    context->nx_secure_tls_client_state == NX_SECURE_TLS_CLIENT_STATE_HANDSHAKE_FINISHED )
+    {
+        *header = NX_SECURE_TLS_RECORD_HEADER_SIZE;
+
+        status = _nx_secure_tls_session_iv_size_get(context, &iv_size);
+        if( NX_SUCCESS != status )
+        {
+            return CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR;
+        }
+
+        if (iv_size > 0)
+        {
+            *footer += iv_size;
+        }
+    }
+    return CY_RSLT_SUCCESS;
+}
+
+/*
+ * @func  : cy_tls_netx_encrypt_packet
+ *
+ * @brief : Encrypt the packet data
+ */
+static UINT cy_tls_netx_encrypt_packet(NX_SECURE_TLS_SESSION *tls_session, NX_PACKET *send_packet, ULONG wait_option)
+{
+    UINT       status;
+    UINT       message_length;
+    UCHAR     *mac_secret;
+    UCHAR     *record_header;
+    UCHAR      record_hash[NX_SECURE_TLS_MAX_HASH_SIZE];
+    UINT       hash_length;
+    UCHAR     *hash_data;
+    ULONG      hash_data_length;
+    ULONG      length;
+    USHORT     iv_size = 0;
+    NX_PACKET *current_packet;
+    UCHAR      record_type = NX_SECURE_TLS_APPLICATION_DATA;
+
+    /* Length of the data in the packet. */
+    length = send_packet -> nx_packet_length;
+
+    /* Get transmit mutex first. */
+    status = tx_mutex_get(&(tls_session -> nx_secure_tls_session_transmit_mutex), TX_WAIT_FOREVER);
+    if (status)
+    {
+        /* Unable to send due to another thread is still transmitting. */
+        return(NX_SECURE_TLS_TRANSMIT_LOCKED);
+    }
+
+    /* See if this is an active session, we need to account for the IV if the session cipher
+        uses one. TLS 1.3 does not use an explicit IV so don't add it.*/
+    if (tls_session -> nx_secure_tls_local_session_active
+    #if (NX_SECURE_TLS_TLS_1_3_ENABLED)
+        && !tls_session->nx_secure_tls_1_3
+    #endif
+        )
+    {
+
+        /* Get the size of the IV used by the session cipher. */
+        status = _nx_secure_tls_session_iv_size_get(tls_session, &iv_size);
+
+        if (status != NX_SUCCESS)
+        {
+            tx_mutex_put(&(tls_session -> nx_secure_tls_session_transmit_mutex));
+            return(status);
+        }
+
+        /* Ensure there is enough room for the IV data.  */
+        if ((ULONG)(send_packet -> nx_packet_prepend_ptr - send_packet -> nx_packet_data_start) < iv_size)
+        {
+            /* Return an invalid packet error.  */
+            tx_mutex_put(&(tls_session -> nx_secure_tls_session_transmit_mutex));
+            return(NX_SECURE_TLS_INVALID_PACKET);
+        }
+
+        /* Back off the pointer to the point before the IV data allocation
+            (can be 0). Increases length since we are moving the prepend pointer. */
+        send_packet -> nx_packet_prepend_ptr -= iv_size;
+        send_packet -> nx_packet_length += iv_size;
+    }
+
+    /* Ensure there is enough room for the record header.  */
+    if ((ULONG)(send_packet -> nx_packet_prepend_ptr - send_packet -> nx_packet_data_start) < NX_SECURE_TLS_RECORD_HEADER_SIZE)
+    {
+        /* Return an invalid packet error.  */
+        tx_mutex_put(&(tls_session -> nx_secure_tls_session_transmit_mutex));
+        return(NX_SECURE_TLS_INVALID_PACKET);
+    }
+
+    /* Get a pointer to our record header which is now right after the prepend pointer. */
+    record_header = send_packet -> nx_packet_prepend_ptr - NX_SECURE_TLS_RECORD_HEADER_SIZE;
+
+    /* Build the TLS record header. */
+    record_header[0] = record_type;
+
+    /* Set the version number. */
+    record_header[1] = (UCHAR)((tls_session -> nx_secure_tls_protocol_version & 0xFF00) >> 8);
+    record_header[2] = (UCHAR)(tls_session -> nx_secure_tls_protocol_version & 0x00FF);
+
+    /* Set the length of the record prior to hashing and encryption - this is because
+        the hashing is done on the record as if it were not encrypted so any additional
+        padding or IVs, etc. added to the length would invalidate the hash. We update
+        the length following the encryption below. */
+    message_length = length;
+    record_header[3] = (UCHAR)((length & 0xFF00) >> 8);
+    record_header[4] = (UCHAR)(length & 0x00FF);
+
+    /* If the session is active, hash and encrypt the record payload using
+        the session keys and chosen ciphersuite. */
+    if (tls_session -> nx_secure_tls_local_session_active)
+    {
+        /*************************************************************************************************************/
+        NX_ASSERT(tls_session -> nx_secure_tls_session_ciphersuite != NX_NULL)
+
+    #if (NX_SECURE_TLS_TLS_1_3_ENABLED)
+        /* TLS 1.3 records have the record type appended in a single byte. */
+        if(tls_session->nx_secure_tls_1_3)
+        {
+            /* If in a TLS 1.3 encrypted session, write the message type to the end. */
+            status = nx_packet_data_append(send_packet, (UCHAR*)(&record_type), 1,
+                                            tls_session -> nx_secure_tls_packet_pool, NX_TIMEOUT(1000));
+
+            if(status != NX_SUCCESS)
+            {
+                tx_mutex_put(&(tls_session -> nx_secure_tls_session_transmit_mutex));
+                return(status);
+            }
+
+            /* Record header type is APPLICATION DATA for all TLS 1.3 encrypted records. */
+            record_type = NX_SECURE_TLS_APPLICATION_DATA;
+            record_header[0] = record_type;
+        }
+    #endif
+
+        /* TLS 1.3 does uses AEAD instead of per-record hash MACs. */
+        if (
+    #if (NX_SECURE_TLS_TLS_1_3_ENABLED)
+            !tls_session->nx_secure_tls_1_3 &&
+    #endif
+            tls_session -> nx_secure_tls_session_ciphersuite -> nx_secure_tls_hash -> nx_crypto_operation)
+        {
+            /* We are a client, so use the server's MAC secret. */
+            mac_secret = tls_session -> nx_secure_tls_key_material.nx_secure_tls_client_write_mac_secret;
+
+            /* Account for large records that exceed the packet size and are chained in multiple packets
+                such as large certificate messages with multiple certificates.
+                tls_session->nx_secure_hash_mac_metadata_area is persistent across the following calls, so it's important
+                to not do anything that might change the contents of that buffer until the hash is calculated after the loop! */
+            current_packet = send_packet;
+
+            /* Initialize the hash routine with our MAC secret, sequence number, and header. */
+            status = _nx_secure_tls_record_hash_initialize(tls_session, tls_session -> nx_secure_tls_local_sequence_number,
+                                                            record_header, 5, &hash_length, mac_secret);
+
+            /* Check return from hash routine initialization. */
+            if (status != NX_SUCCESS)
+            {
+                tx_mutex_put(&(tls_session -> nx_secure_tls_session_transmit_mutex));
+                return(status);
+            }
+
+            /* Start the hash data after the header and IV. */
+            hash_data = current_packet -> nx_packet_prepend_ptr + iv_size;
+            hash_data_length = (ULONG)(current_packet -> nx_packet_append_ptr - current_packet -> nx_packet_prepend_ptr) - iv_size;
+
+            /* Walk packet chain. */
+            do
+            {
+                /* Update the hash with the data. */
+                status = _nx_secure_tls_record_hash_update(tls_session, hash_data,
+                                                            (UINT)hash_data_length);
+
+                /* Advance the packet pointer to the next packet in the chain. */
+                current_packet = current_packet -> nx_packet_next;
+                if (current_packet != NX_NULL)
+                {
+                    hash_data = current_packet -> nx_packet_prepend_ptr;
+                    hash_data_length = (ULONG)(current_packet -> nx_packet_append_ptr - current_packet -> nx_packet_prepend_ptr);
+                }
+            } while (current_packet != NX_NULL);
+
+            /* Generate the hash on the plaintext data. */
+            _nx_secure_tls_record_hash_calculate(tls_session, record_hash, &hash_length);
+
+
+            /* Append the hash to the plaintext data in the last packet before encryption. */
+            status = nx_packet_data_append(send_packet, record_hash, hash_length,
+                                            tls_session -> nx_secure_tls_packet_pool, NX_TIMEOUT(1000));
+
+    #ifdef NX_SECURE_KEY_CLEAR
+            NX_SECURE_MEMSET(record_hash, 0, sizeof(record_hash));
+    #endif /* NX_SECURE_KEY_CLEAR  */
+        }
+
+
+        /*************************************************************************************************************/
+        /***** ENCRYPTION *****/
+
+        status = _nx_secure_tls_record_payload_encrypt(tls_session, send_packet, tls_session -> nx_secure_tls_local_sequence_number, record_type);
+
+        if (status != NX_SUCCESS)
+        {
+            tx_mutex_put(&(tls_session -> nx_secure_tls_session_transmit_mutex));
+            return(status);
+        }
+
+        /*************************************************************************************************************/
+
+        /* Increment the sequence number. */
+        if ((tls_session -> nx_secure_tls_local_sequence_number[0] + 1) == 0)
+        {
+            /* Check for overflow of the 32-bit number. */
+            tls_session -> nx_secure_tls_local_sequence_number[1]++;
+
+            if (tls_session -> nx_secure_tls_local_sequence_number[1] == 0)
+            {
+
+                /* Check for overflow of the 64-bit unsigned number. As it should not reach here
+                    in practical, we return a general error to prevent overflow theoretically. */
+                tx_mutex_put(&(tls_session -> nx_secure_tls_session_transmit_mutex));
+                return(NX_NOT_SUCCESSFUL);
+            }
+        }
+        tls_session -> nx_secure_tls_local_sequence_number[0]++;
+    }
+
+    /* The encryption above may have changed the payload length, so get the length from
+        the packet and use it to update the record header. */
+    message_length = send_packet -> nx_packet_length;
+
+    /* Set the length of the record. */
+    record_header[3] = (UCHAR)((message_length & 0xFF00) >> 8);
+    record_header[4] = (UCHAR)(message_length & 0x00FF);
+
+    /* Adjust packet length */
+    send_packet -> nx_packet_prepend_ptr -= NX_SECURE_TLS_RECORD_HEADER_SIZE;
+    send_packet -> nx_packet_length += NX_SECURE_TLS_RECORD_HEADER_SIZE;
+
+    tx_mutex_put(&(tls_session -> nx_secure_tls_session_transmit_mutex));
+
+    return NX_SUCCESS;
+}
+
+/*
+ * @func  : cy_tls_encrypt_data
+ *
+ * @brief : Encrypt the given data and store in out buffer.
+ */
+cy_rslt_t cy_tls_encrypt_data(cy_tls_context_t* tls_context, uint8_t* out, uint8_t* in, uint32_t* in_out_length)
+{
+    cy_rslt_t result;
+    NX_PACKET *packet = NULL;
+    NX_PACKET_POOL *pool;
+    UINT error;
+
+    if (tls_context == NULL || tls_context->tls_handshake_successful == false)
+    {
+        return CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR;
+    }
+
+    /* Get packet pool to allocate a packet */
+    result = cy_network_get_packet_pool(CY_NETWORK_PACKET_TX, (void *)&pool);
+    if (result != CY_RSLT_SUCCESS)
+    {
+        TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "Get packet pool failed with error 0x%lx\n", result);
+        return CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR;
+    }
+
+    /* Get a packet from the pool to send encrypted data. */
+    error = nx_secure_tls_packet_allocate(&tls_context->context, pool, &packet, CY_TLS_DEFAULT_WAIT);
+    if (error != NX_SUCCESS)
+    {
+        TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "TX packet allocation failed with error 0x%lx\n", error);
+        return CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR;
+    }
+
+    /* Populate the packet with input data. */
+    error = nx_packet_data_append(packet, (void *)(in), *in_out_length, pool, CY_TLS_DEFAULT_WAIT);
+    if (error != NX_SUCCESS)
+    {
+        TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "nx_packet_data_append failed with error 0x%lx\n", error);
+        nx_secure_tls_packet_release(packet);
+        return CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR;
+    }
+
+    /* Perform encryption */
+    error = cy_tls_netx_encrypt_packet(&tls_context->context, packet, CY_TLS_DEFAULT_WAIT);
+    if (error != NX_SUCCESS)
+    {
+        TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "Packet encrypt failed with error 0x%lx\n", error);
+        nx_secure_tls_packet_release(packet);
+        return CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR;
+    }
+
+    /* Copy to out buffer */
+    *in_out_length = packet->nx_packet_length;
+    memcpy(out, packet->nx_packet_prepend_ptr, packet->nx_packet_length);
+
+    /* Release the packet */
+    nx_secure_tls_packet_release(packet);
     return CY_RSLT_SUCCESS;
 }

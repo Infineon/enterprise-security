@@ -15,5 +15,6 @@ var group__enterprise__security__results =
     [ "CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED", "group__enterprise__security__results.html#gab9d1daa7569669a682adc30801eafffa", null ],
     [ "CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_NOT_STARTED", "group__enterprise__security__results.html#gaee4bff2f3b01a82580194d9179af0139", null ],
     [ "CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_UNPROCESSED", "group__enterprise__security__results.html#ga925a4f757a7db59a53a2199ffddcb70d", null ],
-    [ "CY_RSLT_ENTERPRISE_SECURITY_EAP_ERROR", "group__enterprise__security__results.html#ga74835f4e0502263d7f6e9a056a590846", null ]
+    [ "CY_RSLT_ENTERPRISE_SECURITY_EAP_ERROR", "group__enterprise__security__results.html#ga74835f4e0502263d7f6e9a056a590846", null ],
+    [ "CY_RSLT_ENTERPRISE_SECURITY_UTIL_ERROR", "group__enterprise__security__results.html#ga7a02fc2e53e25a043ac5425feb35cf8f", null ]
 ];

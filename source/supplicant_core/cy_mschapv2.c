@@ -34,8 +34,17 @@
 #include "cy_enterprise_security_error.h"
 #include "cy_enterprise_security_log.h"
 #include "cy_mschapv2.h"
+#include "cy_md4.h"
 
 #include "cy_tls_abstraction.h"
+#include "cy_rtos_abstraction.h"
+
+#ifdef COMPONENT_NETXSECURE
+#include "nx_crypto_des.h"
+#include "nx_crypto_sha1.h"
+extern NX_CRYPTO_METHOD crypto_method_des;
+extern NX_CRYPTO_METHOD crypto_method_sha1;
+#endif
 
 /******************************************************
  *                      Macros
@@ -50,11 +59,13 @@
 /******************************************************
  *                Functions Definations
  ******************************************************/
+
 cy_rslt_t mschap_challenge_hash(uint8_t* peer_challenge, uint8_t* authenticator_challenge, char* user_name, uint8_t* challenge)
 {
+    uint8_t hash_value[SHA1_LENGTH];
 #ifdef COMPONENT_MBEDTLS
     mbedtls_sha1_context sha1_ctx;
-    uint8_t hash_value[SHA1_LENGTH];
+
     CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n",__FILE__,__FUNCTION__,__LINE__);
 
     mbedtls_sha1_init( &sha1_ctx );
@@ -65,30 +76,146 @@ cy_rslt_t mschap_challenge_hash(uint8_t* peer_challenge, uint8_t* authenticator_
     mbedtls_sha1_finish_ret( &sha1_ctx, (unsigned char *)hash_value );
     mbedtls_sha1_free( &sha1_ctx );
 
-    memcpy( challenge, hash_value, 8);
-#endif
+#elif defined (COMPONENT_NETXSECURE)
+    UINT status;
+    UCHAR *meta_ptr;
+    VOID *handler = NX_NULL;
+    NX_CRYPTO_METHOD *method = &crypto_method_sha1;
+    UINT metadata_sz = method->nx_crypto_metadata_area_size;
 
-#ifdef COMPONENT_NETXSECURE
-    /* ToDo: Implement for netxsecure */
+    meta_ptr = (UCHAR*)cy_rtos_malloc(metadata_sz);
+    if (meta_ptr == NULL)
+    {
+        CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "Meta PTR allocation Failure\n");
+        return CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR;
+    }
+
+    status = method -> nx_crypto_init((NX_CRYPTO_METHOD*)method,
+                                        NULL,
+                                        0,
+                                        &handler,
+                                        meta_ptr,
+                                        metadata_sz);
+    if (status != NX_CRYPTO_SUCCESS)
+    {
+        CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "SHA1: Crypto Init Failed\n");
+        cy_rtos_free(meta_ptr);
+        return(status);
+    }
+
+
+   /* Hash init. */
+   status = method -> nx_crypto_operation(NX_CRYPTO_HASH_INITIALIZE,
+                                        handler,
+                                        method,
+                                        NULL,
+                                        0,
+                                        NULL,
+                                        0,
+                                        NULL,
+                                        NULL,
+                                        0,
+                                        meta_ptr,
+                                        metadata_sz,
+                                        NX_NULL, NX_NULL);
+    if (status != NX_CRYPTO_SUCCESS)
+    {
+        CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "SHA1: Hash Init Failed\n");
+        cy_rtos_free(meta_ptr);
+        return(status);
+    }
+
+    status = method -> nx_crypto_operation(NX_CRYPTO_HASH_UPDATE,
+                                        handler,
+                                        method,
+                                        NULL,
+                                        0,
+                                        (UCHAR *)peer_challenge,
+                                        16,
+                                        NULL,
+                                        NULL,
+                                        0,
+                                        meta_ptr,
+                                        metadata_sz,
+                                        NX_NULL, NX_NULL);
+    if (status != NX_CRYPTO_SUCCESS)
+    {
+        cy_rtos_free(meta_ptr);
+        return(status);
+    }
+
+    status = method -> nx_crypto_operation(NX_CRYPTO_HASH_UPDATE,
+                                    handler,
+                                    method,
+                                    NULL,
+                                    0,
+                                    (UCHAR *)authenticator_challenge,
+                                    16,
+                                    NULL,
+                                    NULL,
+                                    0,
+                                    meta_ptr,
+                                    metadata_sz,
+                                    NX_NULL, NX_NULL);
+    if (status != NX_CRYPTO_SUCCESS)
+    {
+        cy_rtos_free(meta_ptr);
+        return(status);
+    }
+
+    status = method -> nx_crypto_operation(NX_CRYPTO_HASH_UPDATE,
+                                    handler,
+                                    method,
+                                    NULL,
+                                    0,
+                                    (UCHAR *)user_name,
+                                    strlen((const CHAR*)user_name),
+                                    NULL,
+                                    NULL,
+                                    0,
+                                    meta_ptr,
+                                    metadata_sz,
+                                    NX_NULL, NX_NULL);
+    if (status != NX_CRYPTO_SUCCESS)
+    {
+        cy_rtos_free(meta_ptr);
+        return(status);
+    }
+
+    status = method -> nx_crypto_operation(NX_CRYPTO_HASH_CALCULATE,
+                                    handler,
+                                    method,
+                                    NULL,
+                                    0,
+                                    NULL,
+                                    0,
+                                    NULL,
+                                    hash_value,
+                                    SHA1_LENGTH,
+                                    meta_ptr,
+                                    metadata_sz,
+                                    NX_NULL, NX_NULL);
+    if (status != NX_CRYPTO_SUCCESS)
+    {
+        CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "SHA1: Hash Calculate Failed\n");
+        cy_rtos_free(meta_ptr);
+        return(status);
+    }
+
+    if (method -> nx_crypto_cleanup)
+    {
+        status = method -> nx_crypto_cleanup(meta_ptr);
+    }
+    cy_rtos_free(meta_ptr);
 #endif
+    memcpy( challenge, hash_value, 8);
     return CY_RSLT_SUCCESS;
 }
 
 cy_rslt_t mschap_nt_password_hash( char* password, uint16_t length, uint8_t* password_hash )
 {
-#ifdef COMPONENT_MBEDTLS
-    mbedtls_md4_context md4_ctx;
-    CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n",__FILE__,__FUNCTION__,__LINE__);
-
-    mbedtls_md4_starts_ret( &md4_ctx );
-    mbedtls_md4_update_ret( &md4_ctx, (unsigned char *)password, length );
-    mbedtls_md4_finish_ret( &md4_ctx, (unsigned char *)password_hash );
-#endif
-
-#ifdef COMPONENT_NETXSECURE
-    /* ToDo: Implement for netxsecure */
-#endif
-    return CY_RSLT_SUCCESS;
+    cy_rslt_t ret = cy_md4_func((uint8_t*)password, length, (uint8_t*)password_hash);
+    return ret;
 }
 
 cy_rslt_t mschap_permute_key(uint8_t* key56, uint8_t* key64)
@@ -106,11 +233,14 @@ cy_rslt_t mschap_permute_key(uint8_t* key56, uint8_t* key64)
     return CY_RSLT_SUCCESS;
 }
 
+
+
 cy_rslt_t mschap_des_encrypt( uint8_t* clear, uint8_t* key, uint8_t* cypher)
 {
+    uint8_t key64[ 8 ];
 #ifdef COMPONENT_MBEDTLS
     mbedtls_des_context des_ctx;
-    uint8_t key64[ 8 ];
+
     CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n",__FILE__,__FUNCTION__,__LINE__);
 
     mschap_permute_key( key, key64 );
@@ -118,10 +248,51 @@ cy_rslt_t mschap_des_encrypt( uint8_t* clear, uint8_t* key, uint8_t* cypher)
     mbedtls_des_setkey_enc( &des_ctx, key64 );
     mbedtls_des_crypt_ecb(&des_ctx, clear, cypher);
     mbedtls_des_free( &des_ctx );
-#endif
 
-#ifdef COMPONENT_NETXSECURE
-    /* ToDo: Implement for netxsecure */
+#elif defined (COMPONENT_NETXSECURE)
+    UINT status;
+    UCHAR *meta_ptr;
+    VOID *handler = NX_NULL;
+    NX_CRYPTO_METHOD *method = &crypto_method_des;
+    UINT metadata_sz = method->nx_crypto_metadata_area_size;
+
+    CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n",__FILE__,__FUNCTION__,__LINE__);
+
+    mschap_permute_key( key, key64 );
+
+    meta_ptr = (UCHAR*)cy_rtos_malloc(metadata_sz);
+    if(meta_ptr == NULL)
+    {
+        CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "Meta PTR allocation Failure\n");
+        return CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR;
+    }
+
+    status = method -> nx_crypto_init((NX_CRYPTO_METHOD*)method,
+                                                        key64,
+                                                        NX_CRYPTO_DES_KEY_LEN_IN_BITS,
+                                                        &handler,
+                                                        meta_ptr,
+                                                        metadata_sz);
+    if (status != NX_CRYPTO_SUCCESS)
+    {
+        CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "DES: Crypto Init Failure\n");
+        cy_rtos_free(meta_ptr);
+        return(status);
+    }
+
+    status = _nx_crypto_des_encrypt((NX_CRYPTO_DES*)meta_ptr, clear, cypher, 1);
+    if (status != NX_CRYPTO_SUCCESS)
+    {
+        CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "DES: Encrypt Failure\n");
+        cy_rtos_free(meta_ptr);
+        return(status);
+    }
+
+    if (method -> nx_crypto_cleanup)
+    {
+        status = method -> nx_crypto_cleanup(meta_ptr);
+    }
+    cy_rtos_free(meta_ptr);
 #endif
     return CY_RSLT_SUCCESS;
 }
@@ -169,12 +340,13 @@ cy_rslt_t mschap_process_packet( mschapv2_packet_t *packet, supplicant_workspace
 
     if ( packet->opcode == MSCHAPV2_OPCODE_CHALLENGE )
     {
-        supplicant_packet_t                response_packet = NULL;
         mschapv2_response_packet_t*  response;
-        mschapv2_challenge_packet_t* challenge = (mschapv2_challenge_packet_t*) packet;
-        uint16_t                     packet_size =  sizeof( mschapv2_response_packet_t ) + phase2->identity_length -1;
-        uint8_t                      peer_challenge[16]= {0};
+        supplicant_packet_t          response_packet    = NULL;
+        mschapv2_challenge_packet_t* challenge          = (mschapv2_challenge_packet_t*) packet;
+        uint16_t                     packet_size        = sizeof( mschapv2_response_packet_t ) + phase2->identity_length -1;
+        uint8_t                      peer_challenge[16] = {0};
         uint16_t                     aligned_length;
+
         CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %d \r\n",__FUNCTION__,__LINE__);
 
         cy_crypto_get_random( workspace->tls_context, peer_challenge, sizeof( peer_challenge ) );

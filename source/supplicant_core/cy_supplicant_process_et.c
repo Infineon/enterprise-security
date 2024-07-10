@@ -83,50 +83,6 @@ const whd_event_num_t supplicant_events[] = { WLC_E_LINK, WLC_E_DEAUTH_IND, WLC_
 /******************************************************
  *              Function Definations
  ******************************************************/
-/*
- * Calculates the maximium amount of payload that can fit in a given sized buffer
- */
-cy_rslt_t tls_calculate_overhead( supplicant_workspace_t* workspace, cy_tls_workspace_t* context, uint16_t available_space, uint16_t* header, uint16_t* footer )
-{
-#ifdef COMPONENT_MBEDTLS
-    *header = 0;
-    *footer = 0;
-    mbedtls_cipher_mode_t mode;
-
-    if( context != NULL && context->state == MBEDTLS_SSL_HANDSHAKE_OVER)
-    {
-        /* Add TLS record size */
-        *header = sizeof(tls_record_header_t);
-
-        mode = mbedtls_cipher_get_cipher_mode( &context->transform->cipher_ctx_enc );
-
-        if( mode == MBEDTLS_MODE_GCM || mode == MBEDTLS_MODE_CCM )
-        {
-            unsigned char taglen = workspace->cipher_flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
-            *footer += ( taglen + ( context->transform->ivlen - context->transform->fixed_ivlen ));
-        }
-
-        if ( mode == MBEDTLS_MODE_CBC )
-        {
-            *footer += ( available_space - *header - *footer ) % context->transform->ivlen + 1;
-
-            if ( context->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
-            {
-                *footer += context->transform->ivlen;
-            }
-        }
-
-        if( mode == MBEDTLS_MODE_STREAM || ( mode == MBEDTLS_MODE_CBC ) )
-        {
-            *footer +=  context->transform->maclen;
-        }
-    }
-#endif
-#ifdef COMPONENT_NETXSECURE
-    /* ToDo : implementation for netxsecure */
-#endif
-    return CY_RSLT_SUCCESS;
-}
 
 #ifdef ENABLE_SUPPLICANT_DUMP_BYTES
 static void supplicant_dump_bytes(const uint8_t* bptr, uint32_t len)
@@ -198,7 +154,7 @@ cy_rslt_t supplicant_tls_agent_finish_connect( supplicant_workspace_t* workspace
     {
         if (workspace->tls_context->tls_v13)
         {
-            eap_tls13_context = CY_ENTERPRISE_SECURITY_EAP_TYPE_TLS;
+            eap_tls13_context = workspace->eap_type;
             context = &eap_tls13_context;
             context_len = 1;
             label = CY_EAP_TLS_V13_LABEL;
@@ -210,7 +166,7 @@ cy_rslt_t supplicant_tls_agent_finish_connect( supplicant_workspace_t* workspace
     }
 
     /* Calculate MPPE KEY */
-    result = get_mppe_key( workspace->tls_context, label, context, context_len, mppe_keys, SIZEOF_MPPE_KEYS);
+    result = cy_tls_get_mppe_key( workspace->tls_context, label, context, context_len, mppe_keys, SIZEOF_MPPE_KEYS);
     if ( result != CY_RSLT_SUCCESS )
     {
         CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "Failed to generate MPPE KEY\r\n");
@@ -546,7 +502,7 @@ void supplicant_eap_handshake_cleanup( supplicant_workspace_t* workspace )
 
 cy_rslt_t supplicant_tls_calculate_overhead( supplicant_workspace_t* workspace, uint16_t available_space, uint16_t* header, uint16_t* footer )
 {
-    return (cy_rslt_t)tls_calculate_overhead(  workspace, &workspace->tls_context->context, available_space, header, footer );
+    return cy_tls_calculate_overhead(  workspace, workspace->tls_context, available_space, header, footer );
 }
 
 cy_rslt_t supplicant_send_eap_tls_packet( supplicant_workspace_t* workspace, tls_agent_event_message_t* tls_agent_message, uint32_t timeout )
@@ -664,9 +620,6 @@ void* supplicant_external_event_handler( whd_interface_t ifp, const whd_event_he
 
                     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "[%s()] : L%d : Start timer to wait for EAPOL ID request\r\n", __FUNCTION__, __LINE__);
                     supplicant_host_start_timer( workspace->supplicant_host_workspace, EAPOL_PACKET_TIMEOUT ); /* Start a timer to wait for EAP ID Request */
-
-                    // For mimicing eap start
-                    //supplicant_queue_message_packet( workspace, SUPPLICANT_EVENT_TIMER_TIMEOUT, NULL );
                 }
 
             }
@@ -777,19 +730,14 @@ void supplicant_phase2_thread( cy_thread_arg_t arg )
 #ifdef COMPONENT_MBEDTLS
     while ( workspace->tls_context->context.state != MBEDTLS_SSL_HANDSHAKE_OVER &&
             phase2_workspace->state.result != CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED )
-    {
-        cy_rtos_delay_milliseconds( 10 );
-    }
-#endif
-#ifdef COMPONENT_NETXSECURE
-    while ( workspace->tls_context->context.nx_secure_tls_client_state != NX_SECURE_TLS_CLIENT_STATE_HANDSHAKE_FINISHED &&
+#elif defined (COMPONENT_NETXSECURE)
+    while ( workspace->tls_context->tls_handshake_successful != true &&
             phase2_workspace->state.result != CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED )
+#endif
     {
         cy_rtos_delay_milliseconds( 10 );
     }
 
-#endif
-    CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "TLS handshake finished. Start PEAP processing loop\r\n");
 
     if ( phase2_workspace->state.result == CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED )
     {
@@ -802,23 +750,30 @@ void supplicant_phase2_thread( cy_thread_arg_t arg )
 
     while ( phase2_workspace->state.result == CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_IN_PROGRESS )
     {
+        cy_rslt_t result;
         supplicant_packet_t packet;
+#ifdef COMPONENT_MBEDTLS
         uint8_t data[1024]= {0};
+#endif
         supplicant_buffer_t buffer;
         memset(&buffer, 0, sizeof(buffer));
 #ifdef COMPONENT_MBEDTLS
         buffer.payload = data;
-#endif
-#ifdef COMPONENT_NETXDUO
-        /* ToDo: Fill the netxduo buffer with data */
-        (void)data;
-#endif
         packet =(supplicant_packet_t) &buffer;
+#endif
 
         CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Waiting to receive EAP packet\r\n");
-        if ( cy_tls_receive_eap_packet( workspace, packet ) == CY_RSLT_SUCCESS )
+
+        result = cy_tls_receive_eap_packet( workspace, &packet );
+
+        if ( result == CY_RSLT_SUCCESS )
         {
             phase2_event_handler( workspace, packet );
+            cy_tls_free_eap_packet(packet);
+        }
+        else
+        {
+            cy_rtos_delay_milliseconds( 10 );
         }
     }
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "supplicant_phase2_thread end\r\n");
@@ -1033,12 +988,15 @@ cy_rslt_t supplicant_process_event(supplicant_workspace_t* workspace, supplicant
         case SUPPLICANT_EVENT_PACKET_TO_SEND:
             CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Supplicant event packet to send\r\n");
             supplicant_send_eap_tls_fragment( workspace, message->data.packet );
+
+            if ( workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP  &&
 #ifdef COMPONENT_MBEDTLS
-            if ( workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP  && ( workspace->tls_context->context.state  >= MBEDTLS_SSL_CLIENT_FINISHED ) )
+                    ( workspace->tls_context->context.state  >= MBEDTLS_SSL_CLIENT_FINISHED )
+#elif defined (COMPONENT_NETXSECURE)
+                    ( workspace->tls_context->context.nx_secure_tls_client_state == NX_SECURE_TLS_CLIENT_STATE_SERVERHELLO_DONE  ||
+                      workspace->tls_context->context.nx_secure_tls_client_state == NX_SECURE_TLS_CLIENT_STATE_HANDSHAKE_FINISHED )
 #endif
-#ifdef COMPONENT_NETXSECURE
-            if ( workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP  && ( workspace->tls_context->context.nx_secure_tls_client_state  >= NX_SECURE_TLS_CLIENT_STATE_HANDSHAKE_FINISHED ) )
-#endif
+            )
             {
                 CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Initialize PEAP thread. workspace->tunnel_auth_type %d\r\n", workspace->tunnel_auth_type);
                 supplicant_phase2_init(workspace, CY_ENTERPRISE_SECURITY_EAP_TYPE_MSCHAPV2); //workspace->tunnel_auth_type );
@@ -1057,7 +1015,7 @@ cy_rslt_t supplicant_process_event(supplicant_workspace_t* workspace, supplicant
             break;
     }
 
-    CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "\r\n[%s()] : L%d : Returning succesfully from %s\r\n", __FUNCTION__, __LINE__, __FUNCTION__);
+    CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "\r\n[%s()] : L%d : Returning successfully from %s\r\n", __FUNCTION__, __LINE__, __FUNCTION__);
 
     return CY_RSLT_SUCCESS;
 }
@@ -1087,7 +1045,7 @@ void supplicant_thread_main( cy_thread_arg_t arg )
 
         if ( ( workspace->eap_handshake_start_time != 0 ) && ( ( workspace->eap_handshake_current_time - workspace->eap_handshake_start_time ) >= EAP_HANDSHAKE_TIMEOUT_IN_MSEC ) )
         {
-            CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "eap Handshake timed out...\r\n");
+            CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "EAP Handshake timed out...\r\n");
             supplicant_eap_handshake_cleanup( workspace );
         }
 
@@ -1098,7 +1056,7 @@ void supplicant_thread_main( cy_thread_arg_t arg )
 
             if (( current_time - workspace->start_time ) >= SUPPLICANT_HANDSHAKE_ATTEMPT_TIMEOUT )
             {
-                CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Total handshake timedout expired. Quit processing\r\n");
+                CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Total handshake timeout expired. Quit processing\r\n");
                 workspace->supplicant_result = CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED;
                 continue;
             }
@@ -1493,9 +1451,6 @@ void supplicant_free_tls_session( cy_tls_session_t* session )
     {
 #ifdef COMPONENT_MBEDTLS
         mbedtls_ssl_session_free(session);
-#endif
-#ifdef COMPONENT_NETXSECURE
-        /* ToDo : Invoke appropriate netxsecure session free function */
 #endif
     }
 }

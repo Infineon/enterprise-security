@@ -75,12 +75,21 @@ cy_rslt_t cy_enterprise_security_create(cy_enterprise_security_t *handle, cy_ent
     /* Clear supplicant instance data. */
     memset( supplicant_instance, 0x00, sizeof( cy_supplicant_instance_t ) );
 
-    supplicant_instance->tls_security.ca_cert = ent_parameters->ca_cert;
-    supplicant_instance->tls_security.ca_cert_len = strlen( ent_parameters->ca_cert );
-    supplicant_instance->tls_security.cert = ent_parameters->client_cert;
-    supplicant_instance->tls_security.cert_len = strlen( ent_parameters->client_cert );
-    supplicant_instance->tls_security.key = ent_parameters->client_key;
-    supplicant_instance->tls_security.key_len = strlen( ent_parameters->client_key );
+    if ( ent_parameters->ca_cert )
+    {
+        supplicant_instance->tls_security.ca_cert = ent_parameters->ca_cert;
+        supplicant_instance->tls_security.ca_cert_len = strlen( ent_parameters->ca_cert );
+    }
+    if ( ent_parameters->client_cert )
+    {
+        supplicant_instance->tls_security.cert = ent_parameters->client_cert;
+        supplicant_instance->tls_security.cert_len = strlen( ent_parameters->client_cert );
+    }
+    if ( ent_parameters->client_key )
+    {
+        supplicant_instance->tls_security.key = ent_parameters->client_key;
+        supplicant_instance->tls_security.key_len = strlen( ent_parameters->client_key );
+    }
 
     /* Copy SSID */
     strncpy( supplicant_instance->ssid, ent_parameters->ssid, SSID_NAME_SIZE );
@@ -98,6 +107,7 @@ cy_rslt_t cy_enterprise_security_create(cy_enterprise_security_t *handle, cy_ent
     if( ent_parameters->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP )
     {
         supplicant_instance->phase2_config.tunnel_auth_type = ent_parameters->phase2.tunnel_auth_type;
+
         /* Copy PEAP identiy */
         strncpy( supplicant_instance->phase2_config.tunnel_protocol.peap.inner_identity.identity,
                 ent_parameters->phase2.inner_identity, CY_ENTERPRISE_SECURITY_MAX_IDENTITY_LENGTH );

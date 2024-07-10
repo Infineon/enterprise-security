@@ -102,7 +102,7 @@ Features and Functionality</h1>
 <li>Supports TLS versions 1.0, 1.1, and 1.2</li>
 </ul>
 <p ><b>Note</b>: Deviations for <b>Threadx</b> :</p><ul>
-<li>Supports only EAP-TLS.</li>
+<li>Does not support EAP-TTLS.</li>
 <li>Does not support TLS session resumption.</li>
 <li>Supports TLS1.3 in addition to TLS 1.0, 1.1 and 1.2. Only ECDSA key and certificate is supported with TLS1.3.</li>
 </ul>
@@ -138,7 +138,7 @@ Dependent Libraries</h1>
 ModusToolbox™</h2>
 <ul>
 <li><a href="https://github.com/infineon/wifi-connection-manager">Wi-Fi Connection Manager</a></li>
-<li>nx-secure-wpa3 (For Threadx only)</li>
+<li><a href="https://github.com/Infineon/nx-secure-wpa3">nx-secure-wpa3</a> (For Threadx only)</li>
 </ul>
 <h1><a class="anchor" id="section_radius_servers"></a>
 RADIUS Servers</h1>
@@ -187,7 +187,7 @@ Threadx, NetxDuo, and NetxSecure</h2>
 </div><!-- fragment --></li>
 </ul>
 <h2><a class="anchor" id="quick_start_logging"></a>
-Enable Logging</h2>
+Logging</h2>
 <p >Enterprise Security library disables all the debug log messages by default. To enable log messages, the application must perform the following:</p><ul>
 <li>Add <code>ENABLE_ENTERPRISE_SECURITY_LOGS</code> macro to the <em>DEFINES</em> in the application's Makefile. The Makefile entry would look as follows: <div class="fragment"><div class="line">DEFINES+=ENABLE_ENTERPRISE_SECURITY_LOGS</div>
 </div><!-- fragment --></li>

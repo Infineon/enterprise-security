@@ -3,12 +3,10 @@
 ## What's Included?
 Refer to [README.md](./README.md) for a complete description of the enterprise security library.
 
-## Known Issues
-| Problem | Workaround |
-| ------- | ---------- |
-| RSA 3072 Bit Keys and Certificates are not supported for enterprise connectivity with Threadx | Currently, no workaround is available. |
-
 ## Changelog
+
+### v3.1.0
+* Enabled PEAPv0 with MSCHAPv2 for Azure RTOS.
 
 ### v3.0.0
 * Enabled Enterprise security with Azure RTOS (ThreadX).

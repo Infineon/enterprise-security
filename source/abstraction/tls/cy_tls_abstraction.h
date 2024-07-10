@@ -44,10 +44,22 @@ extern "C" {
 /******************************************************
  *                      Macros
  ******************************************************/
+#define CY_TLS_UNUSED_PARAM(x)      (void)(x)
 
 /******************************************************
  *                      Constants
  ******************************************************/
+#define CY_TLS_RECORD_TYPE_APPLICATION_DATA     23
+
+/******************************************************
+ *                      Logging Macros
+ ******************************************************/
+
+#define TLS_WRAPPER_DEBUG                   cy_enterprise_security_log_msg
+
+#ifdef ENABLE_TLS_WRAPPER_DUMP
+#define CY_SUPPLICANT_TLS_DUMP_BYTES( x )   printf x
+#endif
 
 /******************************************************
  *                      Enums
@@ -189,7 +201,7 @@ cy_rslt_t cy_crypto_get_random( cy_tls_context_t *context, void* buffer, uint16_
  * @return cy_rslt_t       : CY_RESULT_SUCCESS on success, refer to cy_result_mw.h in connectivity-utilities for error.
  *
  */
-cy_rslt_t get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size);
+cy_rslt_t cy_tls_get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size);
 
 /**
  * This function is used to initialize workspace context.
@@ -210,6 +222,40 @@ void cy_tls_init_workspace_context( cy_tls_context_t *context );
  * @return cy_rslt_t         : CY_RESULT_SUCCESS on success, refer to cy_result_mw.h in connectivity-utilities for error
  */
 cy_rslt_t cy_tls_get_versions( cy_tls_context_t* context, uint8_t *major_version, uint8_t *minor_version );
+
+/**
+ * Calculates the maximium amount of payload that can fit in a given sized buffer.
+ *
+ * @param[in]  work            :  Supplicant workspace context.
+ * @param[in]  tls_context     :  The tls context to work with.
+ * @param[in]  available_space :  Total available space.
+ * @param[out] header          :  TLS header Size.
+ * @param[out] footer          :  TLS footer Size.
+ *
+ * @return cy_rslt_t         : CY_RESULT_SUCCESS on success, refer to cy_result_mw.h in connectivity-utilities for error
+ */
+cy_rslt_t cy_tls_calculate_overhead( void *work, cy_tls_context_t* tls_context, uint16_t available_space, uint16_t* header, uint16_t* footer);
+
+/**
+ * Frees the EAP packet.
+ *
+ * @param[in]  packet   :  The packet to release.
+ *
+ * @return void
+ */
+void cy_tls_free_eap_packet(void* packet);
+
+/**
+ * This functions encrypts the given data.
+ *
+ * @param[in]    tls_context   :  The tls context to work with.
+ * @param[out]   out           :  Output buffer to store encrypted data.
+ * @param[in]    in            :  Input data to encrypt.
+ * @param[inout] in_out_length :  Input data length. The same will be updated with encrypted data length.
+ *
+ * @return cy_rslt_t         : CY_RESULT_SUCCESS on success, refer to cy_result_mw.h in connectivity-utilities for error
+ */
+cy_rslt_t cy_tls_encrypt_data(cy_tls_context_t* tls_context, uint8_t* out, uint8_t* in, uint32_t* in_out_length);
 
 /** @} */
 

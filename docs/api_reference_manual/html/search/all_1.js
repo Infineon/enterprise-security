@@ -65,5 +65,6 @@ var searchData=
   ['cy_5frslt_5fenterprise_5fsecurity_5fsupplicant_5fnot_5fstarted_62',['CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_NOT_STARTED',['../group__enterprise__security__results.html#gaee4bff2f3b01a82580194d9179af0139',1,'cy_enterprise_security_error.h']]],
   ['cy_5frslt_5fenterprise_5fsecurity_5fsupplicant_5funprocessed_63',['CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_UNPROCESSED',['../group__enterprise__security__results.html#ga925a4f757a7db59a53a2199ffddcb70d',1,'cy_enterprise_security_error.h']]],
   ['cy_5frslt_5fenterprise_5fsecurity_5ftimeout_64',['CY_RSLT_ENTERPRISE_SECURITY_TIMEOUT',['../group__enterprise__security__results.html#ga45b857839206a3efa7d6b14334830b4b',1,'cy_enterprise_security_error.h']]],
-  ['cy_5frslt_5fenterprise_5fsecurity_5ftls_5ferror_65',['CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR',['../group__enterprise__security__results.html#ga201a063ab98b1f8f15161dc3eb1d0738',1,'cy_enterprise_security_error.h']]]
+  ['cy_5frslt_5fenterprise_5fsecurity_5ftls_5ferror_65',['CY_RSLT_ENTERPRISE_SECURITY_TLS_ERROR',['../group__enterprise__security__results.html#ga201a063ab98b1f8f15161dc3eb1d0738',1,'cy_enterprise_security_error.h']]],
+  ['cy_5frslt_5fenterprise_5fsecurity_5futil_5ferror_66',['CY_RSLT_ENTERPRISE_SECURITY_UTIL_ERROR',['../group__enterprise__security__results.html#ga7a02fc2e53e25a043ac5425feb35cf8f',1,'cy_enterprise_security_error.h']]]
 ];

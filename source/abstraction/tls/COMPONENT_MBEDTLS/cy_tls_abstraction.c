@@ -39,10 +39,6 @@
 /******************************************************
  *                      Macros
  ******************************************************/
-#define TLS_WRAPPER_DEBUG  cy_enterprise_security_log_msg
-
-#define CY_SUPPLICANT_TLS_DUMP_BYTES( x )   //printf x
-//#define ENABLE_TLS_WRAPPER_DUMP
 
 #if defined ( MBEDTLS_SSL_PROTO_TLS1 )
 #define MIN_TLS_VERSION MBEDTLS_SSL_MINOR_VERSION_1
@@ -476,7 +472,7 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
 }
 
 #if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
-cy_rslt_t get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size)
+cy_rslt_t cy_tls_get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size)
 {
     (void)context;
     (void)context_len;
@@ -500,7 +496,7 @@ cy_rslt_t get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 }
 #else
-cy_rslt_t get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size)
+cy_rslt_t cy_tls_get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size)
 {
     (void)context;
     (void)context_len;
@@ -703,7 +699,7 @@ cy_rslt_t cy_tls_deinit_identity(cy_tls_identity_t* identity)
 cy_rslt_t cy_tls_receive_eap_packet( supplicant_workspace_t* supplicant, supplicant_packet_t* packet )
 {
     int ret = 0;
-    supplicant_buffer_t *buffer = (supplicant_buffer_t*)packet;
+    supplicant_buffer_t *buffer = *((supplicant_buffer_t**)packet);
 
     ret = mbedtls_ssl_read(&supplicant->tls_context->context, buffer->payload, 1024);
 
@@ -748,3 +744,70 @@ cy_rslt_t cy_tls_get_versions(cy_tls_context_t* context, uint8_t *major_version,
 
     return CY_RSLT_SUCCESS;
 }
+
+cy_rslt_t cy_tls_calculate_overhead( void *work, cy_tls_context_t* tls_context, uint16_t available_space, uint16_t* header, uint16_t* footer)
+{
+    mbedtls_cipher_mode_t mode;
+    supplicant_workspace_t* workspace = (supplicant_workspace_t *)work;
+    cy_tls_workspace_t* context;
+
+    if( work == NULL || tls_context == NULL || header == NULL || footer == NULL )
+    {
+        return CY_RSLT_MODULE_TLS_BADARG;
+    }
+
+    context = &tls_context->context;
+
+    *header = 0;
+    *footer = 0;
+
+    if( context->state == MBEDTLS_SSL_HANDSHAKE_OVER)
+    {
+        /* Add TLS record size */
+        *header = sizeof(tls_record_header_t);
+
+        mode = mbedtls_cipher_get_cipher_mode( &context->transform->cipher_ctx_enc );
+
+        if( mode == MBEDTLS_MODE_GCM || mode == MBEDTLS_MODE_CCM )
+        {
+            unsigned char taglen = workspace->cipher_flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+            *footer += ( taglen + ( context->transform->ivlen - context->transform->fixed_ivlen ));
+        }
+
+        if ( mode == MBEDTLS_MODE_CBC )
+        {
+            *footer += ( available_space - *header - *footer ) % context->transform->ivlen + 1;
+
+            if ( context->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+            {
+                *footer += context->transform->ivlen;
+            }
+        }
+
+        if( mode == MBEDTLS_MODE_STREAM || ( mode == MBEDTLS_MODE_CBC ) )
+        {
+            *footer +=  context->transform->maclen;
+        }
+    }
+    return CY_RSLT_SUCCESS;
+}
+
+void cy_tls_free_eap_packet (void *packet)
+{
+    CY_TLS_UNUSED_PARAM(packet);
+}
+
+cy_rslt_t cy_tls_encrypt_data(cy_tls_context_t* tls_context, uint8_t* out, uint8_t* in, uint32_t* in_out_length)
+{
+    if( mbedtls_ssl_write( &tls_context->context , in, *in_out_length ) < 0 )
+    {
+        return CY_RSLT_MODULE_TLS_ERROR;
+    }
+
+    *in_out_length = tls_context->context.out_msglen + sizeof(tls_record_header_t);
+
+    memcpy(out, tls_context->context.out_hdr, *in_out_length);
+
+    return CY_RSLT_SUCCESS;
+}
+

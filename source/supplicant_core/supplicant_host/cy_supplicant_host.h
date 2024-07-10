@@ -125,7 +125,7 @@ typedef struct pbuf supplicant_buffer_t;
 #endif
 
 #ifdef COMPONENT_NETXDUO
-typedef struct NX_PACKET_STRUCT supplicant_buffer_t;
+typedef NX_PACKET supplicant_buffer_t;
 #endif
 
 typedef void (*cy_ent_sec_eapol_packet_handler_t)(whd_interface_t interface, whd_buffer_t buffer);

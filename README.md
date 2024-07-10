@@ -15,7 +15,7 @@ This section provides details on the list of enterprise security Wi-Fi features 
 * Supports TLS versions 1.0, 1.1, and 1.2
 
 **Note**: Deviations for **ThreadX** :
-* Supports only EAP-TLS.
+* Does not support EAP-TTLS.
 * Does not support TLS session resumption.
 * Supports TLS1.3 in addition to TLS 1.0, 1.1 and 1.2. Only ECDSA key and certificate is supported with TLS1.3.
 
@@ -47,7 +47,7 @@ This section provides the list of dependent libraries required for this middlewa
 
 ### ModusToolbox&trade;
 * [Wi-Fi Connection Manager](https://github.com/infineon/wifi-connection-manager)
-* nx-secure-wpa3 (For ThreadX only)
+* [nx-secure-wpa3](https://github.com/Infineon/nx-secure-wpa3) (For ThreadX only)
 
 ## RADIUS Servers
 This library has been verified with enterprise Wi-Fi networks configured using the following RADIUS server(s):
@@ -96,6 +96,7 @@ To pull wifi-core-freertos-lwip-mbedtls create the following *.mtb* file in deps
     COMPONENTS=THREADX NETXDUO NETXSECURE NETXSECURE_WPA3
     DISABLE_COMPONENTS+=NETXSECURE_ROM
     ```
+### Logging
 
 Enterprise Security library disables all the debug log messages by default. To enable log messages, the application must perform the following:
   - Add `ENABLE_ENTERPRISE_SECURITY_LOGS` macro to the *DEFINES* in the application's Makefile. The Makefile entry would look as follows:

@@ -100,6 +100,7 @@ extern "C" {
 #define CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_NOT_STARTED           ( CY_RSLT_ENTERPRISE_SECURITY_ERR_BASE + 13 )  /**< Supplicant not yet started.    */
 #define CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_UNPROCESSED           ( CY_RSLT_ENTERPRISE_SECURITY_ERR_BASE + 14 )  /**< Unprocessed event.             */
 #define CY_RSLT_ENTERPRISE_SECURITY_EAP_ERROR                        ( CY_RSLT_ENTERPRISE_SECURITY_ERR_BASE + 15 )  /**< EAP error.                     */
+#define CY_RSLT_ENTERPRISE_SECURITY_UTIL_ERROR                       ( CY_RSLT_ENTERPRISE_SECURITY_ERR_BASE + 16 )  /**< Util error.                    */
 
 /** \} enterprise_security_defines */
 
