@@ -276,18 +276,8 @@ void supplicant_send_ttls_response_packet( supplicant_packet_t* packet, supplica
     record                = (tls_record_t*) ( header->data + length_field_overhead );
 
     data_length           = htobe16(record->length);
-#ifdef COMPONENT_MBEDTLS
-    if( mbedtls_ssl_write( &workspace->tls_context->context , record->message, data_length ) < 0 )
-    {
-        return;
-    }
-    data_length = workspace->tls_context->context.out_msglen + sizeof(tls_record_header_t);
 
-    memcpy(&record->type, workspace->tls_context->context.out_hdr, data_length);
-
-#elif COMPONENT_NETXSECURE
-    // TODO : Implement for Netxsecure
-#endif
+    cy_tls_encrypt_data(workspace->tls_context, (uint8_t*)record, record->message, &data_length);
 
     if ( length_field_overhead )
     {

@@ -703,8 +703,9 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
     NX_PACKET_POOL *pool;
     bool tls_session_created            = false;
     cy_rslt_t result                    = CY_RSLT_SUCCESS;
+    const NX_SECURE_TLS_CRYPTO *cipher_table;
 
-    if( tls_context == NULL )
+    if( tls_context == NULL || tls_context->identity == NULL )
     {
         return CY_RSLT_MODULE_TLS_BADARG;
     }
@@ -717,8 +718,20 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
 
     tls_identity = (cy_tls_identity_t *)tls_context->identity;
 
+    cipher_table = &cy_tls_ent_tls_v12_ciphers;
+
+#if (NX_SECURE_TLS_TLS_1_3_ENABLED)
+    /* NetXSecure doesnt support TLS1.3 with RSA keys/certificate. Hence only if the key type is not RSA,
+     * use the TLS1.3 cipher table
+     */
+    if(tls_identity->certificate.nx_secure_x509_private_key_type != NX_SECURE_X509_KEY_TYPE_RSA_PKCS1_DER)
+    {
+        cipher_table = &cy_tls_ent_tls_v13_ciphers;
+    }
+#endif
+
     /* Find meta-data size that is needed for TLS session creation. */
-    error = nx_secure_tls_metadata_size_calculate( &cy_tls_ciphers_ent, &metadata_size );
+    error = nx_secure_tls_metadata_size_calculate( cipher_table, &metadata_size );
     if( error != NX_SUCCESS )
     {
         TLS_WRAPPER_DEBUG( CYLF_MIDDLEWARE, CY_LOG_ERR, "nx_secure_tls_metadata_size_calculate failed 0x%x\r\n", error );
@@ -734,7 +747,7 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
     }
 
     /* Create TLS session */
-    error = nx_secure_tls_session_create( &tls_context->context, &cy_tls_ciphers_ent, tls_context->tls_metadata, metadata_size );
+    error = nx_secure_tls_session_create( &tls_context->context, cipher_table, tls_context->tls_metadata, metadata_size );
     if( error == NX_SUCCESS )
     {
        tls_session_created = true;

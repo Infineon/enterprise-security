@@ -197,7 +197,7 @@ typedef struct
     char*                                   client_key;                                                         /**<  Client private key in PEM format. */
     cy_enterprise_security_auth_t           auth_type;                                                          /**<  Security auth type used */
     char                                    outer_eap_identity[ CY_ENTERPRISE_SECURITY_MAX_IDENTITY_LENGTH ];   /**<  Outer EAP identity. */
-    uint8_t                                 is_client_cert_required;                                            /**<  (Used for EAP_TTLS) Specifies if client certificate is required. */
+    uint8_t                                 is_client_cert_required;                                            /**<  Deprecated */
     cy_enterprise_security_phase2_params_t  phase2;                                                             /**<  Phase2 authentication parameters. */
 } cy_enterprise_security_parameters_t;
 

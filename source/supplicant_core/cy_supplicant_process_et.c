@@ -73,6 +73,8 @@ static void          supplicant_dump_bytes                     ( const uint8_t* 
  ******************************************************/
 extern cy_rslt_t cy_tls_receive_eap_packet( supplicant_workspace_t* supplicant, supplicant_packet_t* packet );
 
+static cy_rslt_t supplicant_send_eap_tls_packet( supplicant_workspace_t* workspace, tls_agent_event_message_t* tls_agent_message, uint32_t timeout );
+
 /******************************************************
  *              Global variables
  ******************************************************/
@@ -145,19 +147,18 @@ cy_rslt_t supplicant_tls_agent_finish_connect( supplicant_workspace_t* workspace
 
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "TLS handshake completed successfully\r\n");
 
-    if(workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS)
+    if (workspace->tls_context->tls_v13)
     {
-        /* Update tls13 context if required */
-        label = CY_EAP_TTLS_LABEL;
+        eap_tls13_context = workspace->eap_type;
+        context = &eap_tls13_context;
+        context_len = 1;
+        label = CY_EAP_TLS_V13_LABEL;
     }
     else
     {
-        if (workspace->tls_context->tls_v13)
+        if(workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS)
         {
-            eap_tls13_context = workspace->eap_type;
-            context = &eap_tls13_context;
-            context_len = 1;
-            label = CY_EAP_TLS_V13_LABEL;
+            label = CY_EAP_TTLS_LABEL;
         }
         else
         {
@@ -207,6 +208,20 @@ cy_rslt_t supplicant_tls_agent_finish_connect( supplicant_workspace_t* workspace
     {
         if( workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS )
         {
+            if(workspace->tls_context->tls_v13)
+            {
+                /* With TLS1.3, server will send an explicit request for TTLS. We should be sending identity as
+                 * response to that request. Wait for that packet from server
+                 */
+                tls_agent_packet_t* packet        = NULL;
+                uint32_t length                   = 0;
+
+                packet = supplicant_receive_eap_tls_packet( workspace, &length, SUPPLICANT_TIMEOUT_PHASE2_START );
+                if( packet != NULL )
+                {
+                    supplicant_host_free_packet(workspace->interface->whd_driver, packet );
+                }
+            }
             supplicant_init_ttls_phase2_handshake( workspace );
         }
         else
@@ -505,7 +520,7 @@ cy_rslt_t supplicant_tls_calculate_overhead( supplicant_workspace_t* workspace, 
     return cy_tls_calculate_overhead(  workspace, workspace->tls_context, available_space, header, footer );
 }
 
-cy_rslt_t supplicant_send_eap_tls_packet( supplicant_workspace_t* workspace, tls_agent_event_message_t* tls_agent_message, uint32_t timeout )
+static cy_rslt_t supplicant_send_eap_tls_packet( supplicant_workspace_t* workspace, tls_agent_event_message_t* tls_agent_message, uint32_t timeout )
 {
     supplicant_rtos_workspace_t* tls_agent_host_workspace = (supplicant_rtos_workspace_t*) workspace->tls_agent.tls_agent_host_workspace;
     cy_rslt_t result = cy_rtos_put_queue(&tls_agent_host_workspace->event_queue, tls_agent_message, SUPPLICANT_NEVER_TIMEOUT, 0);
@@ -915,9 +930,14 @@ cy_rslt_t supplicant_process_event(supplicant_workspace_t* workspace, supplicant
                         CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "EAP packet received with EAP ID = [%u], len = %d \r\n", (unsigned int)eap_tls_packet->eap.id, len);
                         supplicant_dump_bytes((uint8_t*)&eap_tls_packet->eap, SUPPLICANT_READ_16_BE( (uint8_t *)&eap_tls_packet->eap.length ));
 
-                        if ( supplicant_host_hton16( eap_tls_packet->eap.length ) > 6 )
+                        /* For EAP-TTLS, allowed EAP packet with length 6 to be send to TLS agent. This message is required in case of
+                         * TLS1.3, which act as the request for Phase2 start. In EAP-TTLS case, TLS agent will wait for this packet
+                         * after the TLS handshake complete to start Phase2.
+                         */
+                        if ( supplicant_host_hton16( eap_tls_packet->eap.length ) > 6
+                                || ( supplicant_host_hton16( eap_tls_packet->eap.length ) == 6
+                                        && workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS ) )
                         {
-
                             CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "[%s()] : L%d : Move the packet start to the start of TLS data\r\n", __FUNCTION__, __LINE__);
 
                             /* Move the packet data pointer so it points at the start of TLS data */
@@ -926,8 +946,17 @@ cy_rslt_t supplicant_process_event(supplicant_workspace_t* workspace, supplicant
                             /* Push the current packet to the TLS agent */
                             tls_agent_message.event_type  = TLS_AGENT_EVENT_EAPOL_PACKET;
                             tls_agent_message.data.packet = message->data.packet;
-                            tls_agent_message.length = len - (header_overhead - sizeof(eapol_packet_header_t));
+
+                            if ( len - (header_overhead - sizeof(eapol_packet_header_t)) > 0)
+                            {
+                                tls_agent_message.length = len - (header_overhead - sizeof(eapol_packet_header_t));
+                            }
+                            else
+                            {
+                               tls_agent_message.length = 0;
+                            }
                             CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "[%s()] : L%d : Send the TLS packet to TLS Agent\r\n", __FUNCTION__, __LINE__);
+
                             supplicant_send_eap_tls_packet( workspace, &tls_agent_message, SUPPLICANT_NEVER_TIMEOUT );
 
                             /* Break so the packet is not freed by this thread */
@@ -1144,14 +1173,23 @@ cy_rslt_t supplicant_init(supplicant_workspace_t* workspace, supplicant_connecti
         }
     }
 
-    if ( conn_info->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP || ( conn_info->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS && !(conn_info->is_client_cert_required) ))
+    /* key/cert is mandatory for EAP-TLS */
+    if ( conn_info->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_TLS
+            && ( conn_info->private_key == NULL || conn_info->user_cert == NULL ))
     {
-        cy_result = cy_tls_init_identity( conn_info->tls_identity, NULL, 0, NULL, 0 );
+        CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "Invalid Key/Certificate for EAP-TLS\r\n");
+        return CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ERROR;
     }
-    else if ( conn_info->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_TLS || ( conn_info->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS && conn_info->is_client_cert_required ) )
+
+    if ( conn_info->private_key && conn_info->user_cert )
     {
         cy_result = cy_tls_init_identity( conn_info->tls_identity, (char*) conn_info->private_key, conn_info->key_length, conn_info->user_cert, conn_info->user_cert_length );
     }
+    else
+    {
+        cy_result = cy_tls_init_identity( conn_info->tls_identity, NULL, 0, NULL, 0 );
+    }
+
     if ( cy_result != CY_RSLT_SUCCESS )
     {
         return CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ERROR;

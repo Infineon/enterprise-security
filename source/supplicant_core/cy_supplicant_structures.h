@@ -131,7 +131,6 @@ typedef struct supplicant_connection_info_
 
     supplicant_tunnel_auth_type_t tunnel_auth_type;         /* tunnel authentication type EAP, CHAP etc..*/
     eap_type_t                    inner_eap_type;           /* [Used incase of EAP_TTLS] inner eap type*/
-    uint8_t                       is_client_cert_required;  /* [Used incase of EAP_TTLS] Specifies if client certificate is required*/
 
     uint8_t*                      private_key;              /* [Used incase of EAP-TLS] Client private key */
     uint32_t                      key_length;               /* [Used incase of EAP-TLS] Client private key length */

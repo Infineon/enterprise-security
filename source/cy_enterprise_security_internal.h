@@ -112,7 +112,6 @@ typedef struct cy_supplicant_eap_ttls_s
 {
     cy_enterprise_security_eap_type_t   inner_eap_type;           /**<  Inner EAP type */
     cy_supplicant_inner_identity_t      inner_identity;           /**<  Inner identity credentials like username and password */
-    uint8_t                             is_client_cert_required;  /**<  Used to mandate client authentication */
 } cy_supplicant_eap_ttls_t;
 
 

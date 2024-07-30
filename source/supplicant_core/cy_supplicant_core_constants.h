@@ -98,10 +98,11 @@ ALWAYS_INLINE_PRE static inline ALWAYS_INLINE uint32_t htobe32(uint32_t v)
 /**
  * Semaphore wait time constants
  */
-#define SUPPLICANT_NEVER_TIMEOUT      (0xFFFFFFFF)
-#define SUPPLICANT_WAIT_FOREVER       (0xFFFFFFFF)
-#define SUPPLICANT_TIMEOUT            (5000)
-#define SUPPLICANT_NO_WAIT            (0)
+#define SUPPLICANT_NEVER_TIMEOUT        (0xFFFFFFFF)
+#define SUPPLICANT_WAIT_FOREVER         (0xFFFFFFFF)
+#define SUPPLICANT_TIMEOUT              (5000)
+#define SUPPLICANT_TIMEOUT_PHASE2_START (2000)
+#define SUPPLICANT_NO_WAIT              (0)
 
 /******************************************************
  *                   Enumerations

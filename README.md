@@ -15,7 +15,6 @@ This section provides details on the list of enterprise security Wi-Fi features 
 * Supports TLS versions 1.0, 1.1, and 1.2
 
 **Note**: Deviations for **ThreadX** :
-* Does not support EAP-TTLS.
 * Does not support TLS session resumption.
 * Supports TLS1.3 in addition to TLS 1.0, 1.1 and 1.2. Only ECDSA key and certificate is supported with TLS1.3.
 

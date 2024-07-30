@@ -126,7 +126,7 @@ cy_rslt_t cy_enterprise_security_create(cy_enterprise_security_t *handle, cy_ent
     {
         supplicant_instance->phase2_config.tunnel_auth_type = ent_parameters->phase2.tunnel_auth_type;
         supplicant_instance->phase2_config.tunnel_protocol.eap_ttls.inner_eap_type = ent_parameters->phase2.inner_eap_type;
-        supplicant_instance->phase2_config.tunnel_protocol.eap_ttls.is_client_cert_required = ent_parameters->is_client_cert_required;
+
         /* Copy EAP-TTLS identiy */
         strncpy( supplicant_instance->phase2_config.tunnel_protocol.eap_ttls.inner_identity.identity,
                 ent_parameters->phase2.inner_identity, CY_ENTERPRISE_SECURITY_MAX_IDENTITY_LENGTH );
@@ -337,8 +337,6 @@ cy_rslt_t cy_join_ent( cy_supplicant_instance_t *supplicant_instance )
     }
     else if( conn_info.eap_type == (eap_type_t) CY_ENTERPRISE_SECURITY_EAP_TYPE_TTLS )
     {
-        conn_info.is_client_cert_required = supplicant_instance->phase2_config.tunnel_protocol.eap_ttls.is_client_cert_required;
-
         conn_info.tunnel_auth_type = supplicant_instance->phase2_config.tunnel_auth_type;
 
         conn_info.user_name = (uint8_t*) supplicant_instance->phase2_config.tunnel_protocol.eap_ttls.inner_identity.identity;

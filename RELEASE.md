@@ -5,6 +5,9 @@ Refer to [README.md](./README.md) for a complete description of the enterprise s
 
 ## Changelog
 
+### v3.2.0
+* Enabled EAP-TTLS with EAP-MSCHAPv2 for Azure RTOS.
+
 ### v3.1.0
 * Enabled PEAPv0 with MSCHAPv2 for Azure RTOS.
 
