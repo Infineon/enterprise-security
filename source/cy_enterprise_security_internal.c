@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -391,7 +391,7 @@ static whd_security_t convert_to_whd_security_type(cy_enterprise_security_auth_t
         case CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED:
             return WHD_SECURITY_WPA2_MIXED_ENT;
 
-#ifdef COMPONENT_CAT5
+#if defined(COMPONENT_55900) || defined(COMPONENT_PSE84)
         case CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_AES:
             return WHD_SECURITY_WPA3_ENT;
 

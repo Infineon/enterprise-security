@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -69,11 +69,11 @@ cy_rslt_t mschap_challenge_hash(uint8_t* peer_challenge, uint8_t* authenticator_
     CY_SUPPLICANT_MSCHAPV2_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\r\n %s %s %d \r\n",__FILE__,__FUNCTION__,__LINE__);
 
     mbedtls_sha1_init( &sha1_ctx );
-    mbedtls_sha1_starts_ret( &sha1_ctx );
-    mbedtls_sha1_update_ret( &sha1_ctx, (unsigned char *)peer_challenge, 16 );
-    mbedtls_sha1_update_ret( &sha1_ctx, (unsigned char *)authenticator_challenge, 16 );
-    mbedtls_sha1_update_ret( &sha1_ctx, (unsigned char *)user_name, strlen((const char*)user_name) );
-    mbedtls_sha1_finish_ret( &sha1_ctx, (unsigned char *)hash_value );
+    mbedtls_sha1_starts( &sha1_ctx );
+    mbedtls_sha1_update( &sha1_ctx, (unsigned char *)peer_challenge, 16 );
+    mbedtls_sha1_update( &sha1_ctx, (unsigned char *)authenticator_challenge, 16 );
+    mbedtls_sha1_update( &sha1_ctx, (unsigned char *)user_name, strlen((const char*)user_name) );
+    mbedtls_sha1_finish( &sha1_ctx, (unsigned char *)hash_value );
     mbedtls_sha1_free( &sha1_ctx );
 
 #elif defined (COMPONENT_NETXSECURE)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -38,11 +38,12 @@ extern "C" {
 #endif
 
 #include "ssl.h"
-#include "ssl_internal.h"
+
 #include "ctr_drbg.h"
 #include "entropy.h"
 #include "cipher.h"
-#include "mbedtls/md4.h"
+
+#include "cy_md4.h"
 #include "mbedtls/sha1.h"
 #include "mbedtls/des.h"
 #include "mbedtls/version.h"
@@ -57,9 +58,16 @@ extern "C" {
 #define TLS_MASTER_SECRET_BYTES                  (48)
 #define TLS_SERVER_VERSION_LEN                   (2)
 #define BUFFER_SIZE                              (1600)
+#define MBEDTLS_MAJOR_VERSION_3     (3)
+#define MBEDTLS_MAJOR_VERSION_2     (2)
 
 #define MBEDTLS_VERSION_WITH_PRF_SUPPORT         (0x02130000) /* mbedTLS version 2.19.0 where PRF support is added. */
 
+#if ((MBEDTLS_VERSION_NUMBER >= 0x03000000) && (MBEDTLS_VERSION_MAJOR == 3))
+#define MBEDTLS_MEMBER(state) MBEDTLS_PRIVATE(state)
+#else
+#define MBEDTLS_MEMBER(state) state
+#endif
 /******************************************************
  *                    Typedefs
  ******************************************************/

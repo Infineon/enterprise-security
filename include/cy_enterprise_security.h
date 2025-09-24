@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -90,7 +90,7 @@ typedef enum
     CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_AES      = 2, /**<  WPA2 Enterprise Security with AES. */
     CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_MIXED    = 3, /**<  WPA2 Enterprise Security with AES and TKIP. */
     CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA2_FBT      = 4, /**<  WPA2 Enterprise Security with AES & FBT. Currently not supported, reserved for future. */
-#ifdef COMPONENT_CAT5
+#if defined(COMPONENT_55900) || defined(COMPONENT_PSE84)
     CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_AES      = 5, /**<  WPA3 Enterprise Security with AES GCM-256 */
     CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_192BIT   = 6, /**<  WPA3 192-BIT Enterprise Security with AES. */
     CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_AES_CCMP = 7, /**<  WPA3 Enterprise Security with AES CCM-128 */

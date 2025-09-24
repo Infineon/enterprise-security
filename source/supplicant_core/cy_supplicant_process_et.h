@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -48,11 +48,11 @@ extern "C" {
  *                  Constants
  ******************************************************/
 #ifdef ENABLE_ENTERPRISE_SECURITY_LOGS
-#define SUPPLICANT_THREAD_STACK_SIZE         ( 4*1024 + 3*1024 ) /* Extra 3k for debug logs */
-#define TLS_AGENT_THREAD_STACK_SIZE          ( 4*1024 + 3*1024 ) /* Extra 3k for debug logs */
+#define SUPPLICANT_THREAD_STACK_SIZE         ( 7*1024 + 3*1024 ) /* Extra 3k for debug logs */
+#define TLS_AGENT_THREAD_STACK_SIZE          ( 7*1024 + 3*1024 ) /* Extra 3k for debug logs */
 #else
-#define SUPPLICANT_THREAD_STACK_SIZE         ( 4*1024 )
-#define TLS_AGENT_THREAD_STACK_SIZE          ( 4*1024 )
+#define SUPPLICANT_THREAD_STACK_SIZE         ( 7*1024 )
+#define TLS_AGENT_THREAD_STACK_SIZE          ( 7*1024 )
 #endif
 #define SUPPLICANT_BUFFER_SIZE               ( 3500 )
 #define SUPPLICANT_WORKSPACE_ARRAY_SIZE      ( 3 )

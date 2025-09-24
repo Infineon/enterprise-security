@@ -5,6 +5,9 @@ Refer to [README.md](./README.md) for a complete description of the enterprise s
 
 ## Changelog
 
+### v3.3.0
+* Added support for PSOC&trade; Edge E84 (PSE84) platform.
+
 ### v3.2.0
 * Enabled EAP-TTLS with EAP-MSCHAPv2 for Azure RTOS.
 
@@ -47,8 +50,6 @@ This version of the Middleware was validated for compatibility with the followin
 
 | Software and Tools                                        | Version |
 | :---                                                      | :----:  |
-| ModusToolbox&trade; Software Environment                  | 3.1     |
-| ModusToolbox&trade; Device Configurator                   | 4.10    |
-| GCC Compiler                                              | 11.3.1  |
-| IAR Compiler                                              | 9.30    |
-| Arm Compiler 6                                            | 6.16    |
+| ModusToolbox&trade; Software Environment                  | 3.6     |
+| ModusToolbox&trade; Device Configurator                   | 5.50    |
+| GCC Compiler                                              | 14.2.1  |

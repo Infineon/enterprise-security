@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -109,7 +109,7 @@ cy_rslt_t connect_ent( const char *ssid, uint8_t ssid_length,
         cy_enterprise_security_log_msg(CYLF_MIDDLEWARE, CY_LOG_ERR, "The auth type is not supported \r\n");
         return CY_RSLT_ENTERPRISE_SECURITY_BADARG;
     }
-#ifdef COMPONENT_CAT5
+#if defined(COMPONENT_55900) || defined(COMPONENT_PSE84)
     else if( auth_type == CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_AES )
     {
         connect_params.ap_credentials.security = CY_WCM_SECURITY_WPA3_ENT;

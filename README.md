@@ -40,6 +40,7 @@ This library supports the following frameworks:
 * [PSoC&trade; 62S2 Wi-Fi BT Pioneer Kit (CY8CKIT-062S2-43012)](https://www.cypress.com/documentation/development-kitsboards/psoc-62s2-wi-fi-bt-pioneer-kit-cy8ckit-062s2-43012)
 * [PSoC&trade; 62S2 evaluation kit (CY8CEVAL-062S2-MUR-43439M2)](https://www.cypress.com/documentation/development-kitsboards/psoc-62s2-evaluation-kit-cy8ceval-062s2)
 * [CYW955913EVK-01 Wi-Fi Bluetooth&reg; Prototyping Kit (CYW955913EVK-01)](https://www.infineon.com/CYW955913EVK-01)
+* PSOC&trade; Edge E84 Evaluation Kit
 
 ## Dependencies
 This section provides the list of dependent libraries required for this middleware library to work:
@@ -61,20 +62,28 @@ To pull wifi-core-freertos-lwip-mbedtls create the following *.mtb* file in deps
    - *wifi-core-freertos-lwip-mbedtls.mtb:*
       `https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls#latest-v1.X#$$ASSET_REPO$$/wifi-core-freertos-lwip-mbedtls/latest-v1.X`
 
+  **Note**: For KIT_PSE84_EVAL_EPC2 use the following *.mtb* file in deps folder.
+
+   - *wifi-core-freertos-lwip-mbedtls.mtb:*
+      `https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls#latest-v3.X#$$ASSET_REPO$$/wifi-core-freertos-lwip-mbedtls/latest-v3.X`
+
 * A set of pre-defined configuration files for FreeRTOS, lwIP, and Mbed TLS combination is bundled in wifi-core-freertos-lwip-mbedtls library for Wi-Fi kits. The developer is expected to review the configuration and make adjustments.
 
 1. Make the following changes to the default mbed TLS configurations in mbedtls_user_config.h:
    - Enable the following flags:
      `MBEDTLS_DES_C`, `MBEDTLS_MD4_C`, `MBEDTLS_MD5_C`, `MBEDTLS_SHA1_C`, `MBEDTLS_SSL_PROTO_TLS1`, `MBEDTLS_SSL_PROTO_TLS1_1`, and `MBEDTLS_SSL_EXPORT_KEYS`
    - Disable the following flags:
-     `MBEDTLS_POLY1305_C`, `MBEDTLS_CHACHAPOLY_C`, and `MBEDTLS_CHACHA20_C`
+     `MBEDTLS_SSL_HAVE_CHACHAPOLY`, `MBEDTLS_POLY1305_C`, `MBEDTLS_CHACHAPOLY_C`, and `MBEDTLS_CHACHA20_C`
 
-2. Define the following COMPONENTS in the application's Makefile for the Enterprise Security library.
+2. Make the following changes to the default psa crypto configurations in ifx_psa_crypto_config.h:
+   - Remove the flag `PSA_WANT_ALG_CHACHA20_POLY1305`
+
+3. Define the following COMPONENTS in the application's Makefile for the Enterprise Security library.
   ```
     COMPONENTS=FREERTOS PSOC6HAL MBEDTLS LWIP WCM
   ```
 
-3. By default, the macro `MBEDTLS_HAVE_TIME_DATE` is undefined in mbedtls_user_config.h. If the application wishes to perform time and date validation on the certificate, then enable the `MBEDTLS_HAVE_TIME_DATE` flag in mbedtls_user_config.h.
+4. By default, the macro `MBEDTLS_HAVE_TIME_DATE` is undefined in mbedtls_user_config.h. If the application wishes to perform time and date validation on the certificate, then enable the `MBEDTLS_HAVE_TIME_DATE` flag in mbedtls_user_config.h.
 
 ### ThreadX, NetX Duo, and NetX Secure
 

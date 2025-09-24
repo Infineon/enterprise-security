@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -35,6 +35,17 @@
 #include "cy_tls_abstraction.h"
 #include "cy_supplicant_structures.h"
 #include "cy_supplicant_process_et.h"
+#include <time.h>
+#include <mbedtls/debug.h>
+
+#include <mbedtls/ssl.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/error.h>
+#include <mbedtls/x509_crt.h>
+#include <mbedtls/platform_time.h>
+#include "psa/crypto.h"
+#include "psa_util.h"
 
 /******************************************************
  *                      Macros
@@ -76,8 +87,26 @@ struct options
     int         transport;     /* TLS or DTLS?                      */
 } opt;
 
+static uint8_t is_ssl_initialized = 0;
+
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
-#if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
+#if ((MBEDTLS_VERSION_NUMBER >= 0x03000000) && (MBEDTLS_VERSION_MAJOR == 3))
+static void eap_tls_key_derivation(void *p_expkey,
+                            mbedtls_ssl_key_export_type secret_type,
+                            const unsigned char *secret,
+                            size_t secret_len,
+                            const unsigned char client_random[32],
+                            const unsigned char server_random[32],
+                            mbedtls_tls_prf_types tls_prf_type)
+{
+    if (p_expkey != NULL)
+    {
+        cy_tls_context_t* tls_context = p_expkey;
+        tls_context->resume = mbedtls_ssl_get_resumption_state(&tls_context->context);
+    }
+    return;
+}
+#elif (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
 static int eap_tls_key_derivation( void *p_expkey, const unsigned char *ms, const unsigned char *kb, size_t maclen, size_t keylen, size_t ivlen, const unsigned char client_random[32], const unsigned char server_random[32], mbedtls_tls_prf_types tls_prf_type )
 {
     cy_tls_context_t* tls_context = p_expkey;
@@ -93,23 +122,7 @@ static int eap_tls_key_derivation( void *p_expkey, const unsigned char *ms, cons
     tls_context->resume = tls_context->context.handshake->resume;
     return( 0 );
 }
-#else
-static int eap_tls_key_derivation( void *p_expkey, const unsigned char *ms, const unsigned char *kb, size_t maclen, size_t keylen,  size_t ivlen )
-{
-    cy_tls_context_t* tls_context = p_expkey;
-    eap_tls_keys *keys = (eap_tls_keys *)&tls_context->eap_tls_keying;
-    ( ( void ) kb );
-    ( ( void ) maclen );
-    ( ( void ) keylen );
-    ( ( void ) ivlen );
-/* random bytes are collected in eap_ssl_receive_packet function */
-
-    memcpy( keys->master_secret, ms, sizeof( keys->master_secret ) );
-    tls_context->resume = tls_context->context.handshake->resume;
-    keys->supplicant_tls_prf = tls_context->context.handshake->tls_prf;
-    return( 0 );
-}
-#endif /* MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT */
+#endif
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #ifdef ENABLE_TLS_WRAPPER_DUMP
@@ -215,7 +228,7 @@ static cy_rslt_t supplicant_host_send_eap_tls_fragments( supplicant_workspace_t*
     //CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "TLS handshake state: %u\r\n", (unsigned int) workspace->tls_context->context.state);
 
     /* Send the alert message to peer */
-    if(workspace->tls_context->context.out_msgtype == MBEDTLS_SSL_MSG_ALERT)
+    if(workspace->tls_context->context.MBEDTLS_MEMBER(out_msgtype) == MBEDTLS_SSL_MSG_ALERT)
     {
         memset( workspace->buffer, 0, workspace->buffer_size );
 
@@ -229,11 +242,14 @@ static cy_rslt_t supplicant_host_send_eap_tls_fragments( supplicant_workspace_t*
     }
     else
     {
-        if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_HELLO) ||
-                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
-                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
-                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
-                ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) &&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
+        if ( ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_SERVER_HELLO) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY ) ) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_FLUSH_BUFFERS ) ) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
+                ( ( workspace->have_packet == 0 ) && ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_HANDSHAKE_OVER ) ) ||
+                ( ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CLIENT_FINISHED ) &&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
         {
 
             /* Mark that we already started a record, so that a
@@ -252,24 +268,28 @@ static cy_rslt_t supplicant_host_send_eap_tls_fragments( supplicant_workspace_t*
             workspace->data_end = workspace->data_start + length;
 
             /* If this is the client certificate exchange or change cipher spec with session resumption then return so the TLS engine provides the rest of the handshake packets */
-            if ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
-                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
-                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
-                    ( ( workspace->tls_context->context.state == MBEDTLS_SSL_CLIENT_FINISHED ) && ( workspace->tls_context->resume == 1 ) ) )
+            if ( ( ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CLIENT_CERTIFICATE ) ) ||
+                    ( ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CERTIFICATE_VERIFY ) ) ||
+                    ( ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ) ) ||
+                    ( ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CLIENT_FINISHED ) && ( workspace->tls_context->resume == 1 ) ) )
             {
                 return CY_RSLT_SUCCESS;
             }
-
+            else if ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY ||
+                    workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_CLIENT_FINISHED)
+            {
+                return CY_RSLT_SUCCESS;
+            }
         }
-        else if ( ( workspace->tls_context->context.state > MBEDTLS_SSL_CLIENT_CERTIFICATE )  &&  ( workspace->tls_context->context.state < MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
+        else if ( ( workspace->tls_context->context.MBEDTLS_MEMBER(state) > MBEDTLS_SSL_CLIENT_CERTIFICATE )  &&  ( workspace->tls_context->context.MBEDTLS_MEMBER(state) < MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) )
         {
             /* Append the handshake message and return for more unless it's the last message */
             memcpy(workspace->data_end, buffer, length);
             workspace->data_end += length;
             return CY_RSLT_SUCCESS;
         }
-        else if ( ( workspace->tls_context->context.state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ||
-                ( ( ( workspace->tls_context->context.state == MBEDTLS_SSL_FLUSH_BUFFERS) || ( workspace->tls_context->context.state == MBEDTLS_SSL_HANDSHAKE_WRAPUP) )&&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
+        else if ( ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC ) ||
+                ( ( ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_FLUSH_BUFFERS) || ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_HANDSHAKE_WRAPUP) )&&  ( workspace->tls_context->resume == 1 ) ) ) /* Session resumption case */
         {
             memcpy(workspace->data_end, buffer, length);
             workspace->data_end += length;
@@ -277,11 +297,28 @@ static cy_rslt_t supplicant_host_send_eap_tls_fragments( supplicant_workspace_t*
             if ( workspace->tls_context->resume == 1 )
             {
 #if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
-                workspace->cipher_flags = workspace->tls_context->context.handshake->ciphersuite_info->flags;
+                const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+
+                if (workspace->tls_context->context.MBEDTLS_MEMBER(session_negotiate) == NULL)
+                {
+                    return CY_RSLT_MODULE_TLS_ERROR;
+                }
+
+                ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( workspace->tls_context->context.MBEDTLS_MEMBER(session_negotiate)->MBEDTLS_MEMBER(ciphersuite));
+                if (ciphersuite_info == NULL)
+                {
+                    return CY_RSLT_MODULE_TLS_ERROR;
+                }
+                workspace->cipher_flags = ciphersuite_info->MBEDTLS_MEMBER(flags);
 #else
                 workspace->cipher_flags = workspace->tls_context->context.transform_out->ciphersuite_info->flags;
 #endif
             }
+        }
+        else if ( workspace->tls_context->context.MBEDTLS_MEMBER(state) == MBEDTLS_SSL_FLUSH_BUFFERS)
+        {
+            memcpy(workspace->data_end, buffer, length);
+            workspace->data_end += length;
         }
         else
         {
@@ -325,10 +362,13 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
     const char *pers = "supplicant_client";
 
     /* Cleaning up the previous allocated items */
-    mbedtls_entropy_free(&tls_context->entropy );
-    mbedtls_ctr_drbg_free( &tls_context->ctr_drbg );
-    mbedtls_ssl_config_free( conf );
-    mbedtls_ssl_free(ssl);
+    if(is_ssl_initialized)
+    {
+        mbedtls_entropy_free(&tls_context->entropy );
+        mbedtls_ctr_drbg_free( &tls_context->ctr_drbg );
+        mbedtls_ssl_config_free( conf );
+        mbedtls_ssl_free(ssl);
+    }
 
     /*
      * Make sure memory references are valid.
@@ -353,6 +393,7 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
         return CY_RSLT_MODULE_TLS_ERROR;
     }
 
+    is_ssl_initialized = 1;
     TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, " ok\n");
 
     /*
@@ -369,7 +410,8 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
     mbedtls_ssl_conf_rng( conf, mbedtls_ctr_drbg_random, &tls_context->ctr_drbg );
 
 #if defined(MBEDTLS_DEBUG_C)
-    mbedtls_ssl_conf_dbg( conf, mbedtls_debug, stdout );
+    mbedtls_debug_set_threshold(MBEDTLS_VERBOSE);
+    mbedtls_ssl_conf_dbg( conf, mbedtls_debug, NULL );
 #endif /* MBEDTLS_DEBUG_C */
     mbedtls_ssl_conf_read_timeout( conf, 0);
 
@@ -410,11 +452,28 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
         }
     }
 
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+#ifdef MBEDTLS_SSL_PROTO_TLS1_3
+    /* setting minimum TLS version supported as TLSv1.3 */
+    mbedtls_ssl_conf_min_tls_version(conf, MBEDTLS_SSL_VERSION_TLS1_3);
+
+    /* setting Maximum TLS version supported as TLSv1.3 */
+    mbedtls_ssl_conf_max_tls_version(conf, MBEDTLS_SSL_VERSION_TLS1_3);
+
+#else
+    /* setting minimum TLS version supported as TLSv1.0 */
+    mbedtls_ssl_conf_min_tls_version( conf, MBEDTLS_SSL_VERSION_TLS1_2 );
+
+    /* setting Maximum TLS version supported as TLSv1.2 */
+    mbedtls_ssl_conf_max_tls_version( conf, MBEDTLS_SSL_VERSION_TLS1_2 );
+#endif
+#else
     /* setting minimum TLS version supported as TLSv1.0 */
     mbedtls_ssl_conf_min_version( conf, MBEDTLS_SSL_MAJOR_VERSION_3, MIN_TLS_VERSION );
 
     /* setting Maximum TLS version supported as TLSv1.2 */
     mbedtls_ssl_conf_max_version( conf, MBEDTLS_SSL_MAJOR_VERSION_3, MAX_TLS_VERSION );
+#endif
 
     if( ( ret = mbedtls_ssl_setup( ssl, conf ) ) != 0 )
     {
@@ -425,17 +484,17 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
     /* If session is already set then assuming that this is resume connection, It is only applicable for client */
     if ( tls_context->session != NULL)
     {
-        if ( tls_context->session->id_len > 0 )
+        if ( tls_context->session->MBEDTLS_MEMBER(id_len) > 0 )
         {
             mbedtls_ssl_set_session( &tls_context->context, tls_context->session );
         }
     }
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
-#if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
+#if ((MBEDTLS_VERSION_NUMBER >= 0x03000000) && (MBEDTLS_VERSION_MAJOR == 3))
+    mbedtls_ssl_set_export_keys_cb(ssl, eap_tls_key_derivation, tls_context);
+#elif (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
     mbedtls_ssl_conf_export_keys_ext_cb(conf, eap_tls_key_derivation, tls_context);
-#else
-    mbedtls_ssl_conf_export_keys_cb(conf, eap_tls_key_derivation, tls_context);
 #endif
 #endif
 
@@ -454,6 +513,7 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
         {
             TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n", -ret);
 
+            is_ssl_initialized = 0;
             mbedtls_entropy_free(&tls_context->entropy );
             mbedtls_ctr_drbg_free( &tls_context->ctr_drbg );
             mbedtls_ssl_config_free( conf );
@@ -461,9 +521,60 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
             return CY_RSLT_MODULE_TLS_HANDSHAKE_FAILURE;
         }
     }
+
     if( ( ret = mbedtls_ssl_get_session( ssl,tls_context->session ) ) != 0 )
     {
         TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "\r\n failed\n  ! mbedtls_ssl_get_session returned -0x%x\n\n", -ret);
+    }
+
+    if (ssl->MBEDTLS_MEMBER(tls_version) == MBEDTLS_SSL_VERSION_TLS1_3)
+    {
+        tls_context->tls_v13 = 1;
+
+        supplicant_workspace_t* workspace = (supplicant_workspace_t*)referee;
+
+        /* tls 13 eap-tls requiers a 0x00 data at the end of transfer */
+        TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, " Receive 1 packet after handshake complete\n");
+        if( CY_ENTERPRISE_SECURITY_EAP_TYPE_TLS == workspace->eap_type )
+        {
+            size_t read = 0;
+            int ret;
+            unsigned char buffer[100];
+            uint32_t length = 1;
+
+            /* Read the data */
+            do
+            {
+                ret = mbedtls_ssl_read(ssl, buffer, 100);
+                if(ret > 0)
+                {
+                    /* Update read count. */
+                    read += ret;
+                }
+                else if(ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE || ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS)
+                {
+                    /* The handshake is not over yet. Retry */
+                    continue;
+                }
+#if (MBEDTLS_VERSION_NUMBER >= 0x03000000)
+#if defined (MBEDTLS_SSL_SESSION_TICKETS)
+                else if(ret == MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET)
+                {
+                    /* We were reading for application data but got a NewSessionTicket instead.
+                     * Currently this is ignored.
+                     */
+                    continue;
+                }
+#endif
+#endif
+                else if(ret == MBEDTLS_ERR_SSL_TIMEOUT)
+                {
+                    result = CY_RSLT_MODULE_TLS_TIMEOUT;
+                    break;
+                }
+
+            } while(read < length);
+        }
     }
 
     TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, " ok\n");
@@ -474,9 +585,29 @@ cy_rslt_t cy_tls_generic_start_tls_with_ciphers( cy_tls_context_t* tls_context, 
 #if (MBEDTLS_VERSION_NUMBER >= MBEDTLS_VERSION_WITH_PRF_SUPPORT)
 cy_rslt_t cy_tls_get_mppe_key(cy_tls_context_t *tls_context, const char* label, uint8_t *context, uint16_t context_len, uint8_t* mppe_keys, int size)
 {
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+#if ((MBEDTLS_VERSION_NUMBER >= 0x03000000) && (MBEDTLS_VERSION_MINOR >= 6))
+    mbedtls_ssl_context *ssl = &tls_context->context;
+    const int use_context = (context_len == 0) ? 0 : 1;
+
+    if( mbedtls_ssl_export_keying_material(ssl, mppe_keys, (size_t)size,
+                                            label, (size_t) strlen(label),
+                                            context,(size_t)context_len,
+                                            use_context) != 0)
+    {
+        TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, " failed\n  ! mbedtls_ssl_export_keying_material returned ERROR\r\n");
+        return CY_RSLT_MODULE_TLS_ERROR;
+    }
+
+    TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "EAP-TLS key material is: \n");
+    tls_dump_bytes(mppe_keys,size);
+    TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\n");
+    return CY_RSLT_SUCCESS;
+#elif
     (void)context;
     (void)context_len;
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+
     if ( mbedtls_ssl_tls_prf(tls_context->eap_tls_keying.tls_prf_type,
             tls_context->eap_tls_keying.master_secret,
             sizeof(tls_context->eap_tls_keying.master_secret), label,
@@ -491,6 +622,7 @@ cy_rslt_t cy_tls_get_mppe_key(cy_tls_context_t *tls_context, const char* label, 
     tls_dump_bytes(mppe_keys,size);
     TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "\n");
     return CY_RSLT_SUCCESS;
+#endif
 #else
     return CY_RSLT_MODULE_TLS_UNSUPPORTED;
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
@@ -550,7 +682,11 @@ static cy_rslt_t tls_load_certificate_key ( cy_tls_identity_t* identity,  const 
         /* load key */
         mbedtls_pk_init( &identity->private_key );
 
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+        ret = mbedtls_pk_parse_key( &identity->private_key, (const unsigned char *) private_key, key_length+1, NULL, 0, NULL, 0 );
+#elif MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_2
         ret = mbedtls_pk_parse_key( &identity->private_key, (const unsigned char *) private_key, key_length+1, NULL, 0 );
+#endif
         if ( ret != 0 )
         {
             TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, " [%s][%s][%d] Unable to parse TLS private key ret %d\r\n", __FILE__, __func__, __LINE__, ret);
@@ -573,6 +709,10 @@ ERROR_CERTIFICATE_INIT:
 
 cy_rslt_t cy_tls_init_context(cy_tls_context_t* tls_context, cy_tls_identity_t* identity, char* peer_cn)
 {
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+    psa_status_t psa_status;
+#endif
+
     if (tls_context == NULL)
     {
         TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, " [%s][%s][%d] Invalid TLS context\r\n", __FILE__, __func__, __LINE__);
@@ -581,6 +721,15 @@ cy_rslt_t cy_tls_init_context(cy_tls_context_t* tls_context, cy_tls_identity_t* 
     tls_context->identity = identity;
     tls_context->peer_cn = peer_cn;
 
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+    psa_status = psa_crypto_init();
+    TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "initialize PSA crypto %x\r\n", psa_status);
+    if(CY_RSLT_SUCCESS != psa_status)
+    {
+        TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, "Failed to initialize PSA crypto %x\r\n", psa_status);
+        return CY_RSLT_MODULE_TLS_ERROR;
+    }
+#endif
     /* tls13 not added yet */
     tls_context->tls_v13 = false;
     return CY_RSLT_SUCCESS;
@@ -593,6 +742,12 @@ cy_rslt_t cy_tls_deinit_context( cy_tls_context_t* tls_context )
         TLS_WRAPPER_DEBUG(CYLF_MIDDLEWARE, CY_LOG_ERR, " [%s][%s][%d] Invalid TLS context\r\n", __FILE__, __func__, __LINE__);
         return CY_RSLT_MODULE_TLS_BADARG;
     }
+
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+    mbedtls_psa_crypto_free();
+#endif
+
+    is_ssl_initialized = 0;
     mbedtls_ssl_config_free( (mbedtls_ssl_config*) &tls_context->conf );
     mbedtls_ssl_free( &tls_context->context );
     mbedtls_ctr_drbg_free( &tls_context->ctr_drbg );
@@ -654,6 +809,23 @@ cy_rslt_t cy_tls_deinit_root_ca_certificates( cy_tls_context_t* context )
     return CY_RSLT_SUCCESS;
 }
 
+/* Get the current time. */
+mbedtls_time_t get_current_time_es(mbedtls_time_t *t)
+{
+    time_t current_time;
+
+    memset(&current_time, 0, sizeof(current_time));
+
+    current_time = time(&current_time);
+
+    if(t != NULL)
+    {
+        *t = (mbedtls_time_t)current_time;
+    }
+
+    return current_time;
+}
+
 cy_rslt_t cy_tls_init_identity( cy_tls_identity_t* identity, const char* private_key, const uint32_t key_length, const uint8_t* certificate_data, uint32_t certificate_length )
 {
     if (identity == NULL)
@@ -663,6 +835,8 @@ cy_rslt_t cy_tls_init_identity( cy_tls_identity_t* identity, const char* private
     }
 
     memset( identity, 0, sizeof( *identity ) );
+
+    mbedtls_platform_set_time(get_current_time_es);
 
     if ( tls_load_certificate_key(identity, certificate_data, certificate_length, private_key, key_length) != CY_RSLT_SUCCESS )
     {
@@ -728,20 +902,28 @@ void cy_tls_init_workspace_context( cy_tls_context_t *context )
 {
     if( context )
     {
-        context->context.conf = NULL;
+        context->context.MBEDTLS_MEMBER(conf) = NULL;
     }
 }
 
 cy_rslt_t cy_tls_get_versions(cy_tls_context_t* context, uint8_t *major_version, uint8_t *minor_version)
 {
+    cy_tls_workspace_t* ctx;
+
     if(context == NULL || major_version == NULL || minor_version == NULL)
     {
         return CY_RSLT_MODULE_TLS_BADARG;
     }
 
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+    ctx = &context->context;
+
+    *major_version = (ctx->MBEDTLS_MEMBER(tls_version) >> 8) & 0xFF;
+    *minor_version = (ctx->MBEDTLS_MEMBER(tls_version)) & 0xFF;
+#else
     *major_version = (uint8_t)context->context.major_ver;
     *minor_version = (uint8_t)context->context.minor_ver;
-
+#endif
     return CY_RSLT_SUCCESS;
 }
 
@@ -750,6 +932,14 @@ cy_rslt_t cy_tls_calculate_overhead( void *work, cy_tls_context_t* tls_context, 
     mbedtls_cipher_mode_t mode;
     supplicant_workspace_t* workspace = (supplicant_workspace_t *)work;
     cy_tls_workspace_t* context;
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+    size_t maclen;
+    size_t ivlen;
+    size_t fixed_ivlen;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    const mbedtls_md_info_t *md_info;
+    const mbedtls_cipher_info_t *cipher_info;
+#endif
 
     if( work == NULL || tls_context == NULL || header == NULL || footer == NULL )
     {
@@ -761,32 +951,88 @@ cy_rslt_t cy_tls_calculate_overhead( void *work, cy_tls_context_t* tls_context, 
     *header = 0;
     *footer = 0;
 
-    if( context->state == MBEDTLS_SSL_HANDSHAKE_OVER)
+    if( context->MBEDTLS_MEMBER(state) == MBEDTLS_SSL_HANDSHAKE_OVER)
     {
         /* Add TLS record size */
         *header = sizeof(tls_record_header_t);
 
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( context->MBEDTLS_MEMBER(session)->MBEDTLS_MEMBER(ciphersuite));
+        if (ciphersuite_info == NULL)
+        {
+            return CY_RSLT_MODULE_TLS_ERROR;
+        }
+        cipher_info = mbedtls_cipher_info_from_type((mbedtls_cipher_type_t)(ciphersuite_info->MBEDTLS_MEMBER(cipher)));
+        if (cipher_info == NULL)
+        {
+            return CY_RSLT_MODULE_TLS_ERROR;
+        }
+        md_info =  mbedtls_md_info_from_type((mbedtls_md_type_t)(ciphersuite_info->MBEDTLS_MEMBER(mac)));
+        if (md_info == NULL)
+        {
+            return CY_RSLT_MODULE_TLS_ERROR;
+        }
+
+        maclen = mbedtls_md_get_size(md_info);
+
+        ivlen = mbedtls_cipher_info_get_iv_size(cipher_info);
+
+        mode = cipher_info->MBEDTLS_MEMBER(mode);
+#else
         mode = mbedtls_cipher_get_cipher_mode( &context->transform->cipher_ctx_enc );
+#endif
 
         if( mode == MBEDTLS_MODE_GCM || mode == MBEDTLS_MODE_CCM )
         {
             unsigned char taglen = workspace->cipher_flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+            if (context->MBEDTLS_MEMBER(tls_version) == MBEDTLS_SSL_VERSION_TLS1_3)
+            {
+                /* All modes in TLS 1.3, there's a static IV of 12 Bytes  */
+                fixed_ivlen = 12;
+            }
+            else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+            {
+                /* For GCM and CCM in TLS 1.2, there's a static IV of 4 Bytes */
+                fixed_ivlen = 4;
+            }
+            *footer += ( taglen + ( ivlen - fixed_ivlen ));
+#else
             *footer += ( taglen + ( context->transform->ivlen - context->transform->fixed_ivlen ));
+#endif
         }
 
         if ( mode == MBEDTLS_MODE_CBC )
         {
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+            *footer += ( available_space - *header - *footer ) % ivlen + 1;
+
+            int protocol_minor_ver = (context->MBEDTLS_MEMBER(tls_version)) & 0xFF;
+
+            if ( protocol_minor_ver >= MBEDTLS_SSL_VERSION_TLS1_2 )
+            {
+                *footer += ivlen;
+            }
+#else
             *footer += ( available_space - *header - *footer ) % context->transform->ivlen + 1;
 
-            if ( context->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
-            {
-                *footer += context->transform->ivlen;
-            }
+             if ( context->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+             {
+                 *footer += context->transform->ivlen;
+             }
+#endif
         }
 
         if( mode == MBEDTLS_MODE_STREAM || ( mode == MBEDTLS_MODE_CBC ) )
         {
+#if MBEDTLS_VERSION_MAJOR == MBEDTLS_MAJOR_VERSION_3
+            *footer +=  maclen;
+#else
             *footer +=  context->transform->maclen;
+#endif
         }
     }
     return CY_RSLT_SUCCESS;
@@ -804,10 +1050,9 @@ cy_rslt_t cy_tls_encrypt_data(cy_tls_context_t* tls_context, uint8_t* out, uint8
         return CY_RSLT_MODULE_TLS_ERROR;
     }
 
-    *in_out_length = tls_context->context.out_msglen + sizeof(tls_record_header_t);
+    *in_out_length = tls_context->context.MBEDTLS_MEMBER(out_msglen) + sizeof(tls_record_header_t);
 
-    memcpy(out, tls_context->context.out_hdr, *in_out_length);
+    memcpy(out, tls_context->context.MBEDTLS_MEMBER(out_hdr), *in_out_length);
 
     return CY_RSLT_SUCCESS;
 }
-

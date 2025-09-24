@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Cypress Semiconductor Corporation (an Infineon company) or
+ * Copyright 2025, Cypress Semiconductor Corporation (an Infineon company) or
  * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
  *
  * This software, including source code, documentation and related
@@ -81,6 +81,12 @@ static cy_rslt_t supplicant_send_eap_tls_packet( supplicant_workspace_t* workspa
 
 supplicant_workspace_t* active_supplicant_workspaces[SUPPLICANT_WORKSPACE_ARRAY_SIZE] = { 0 };
 const whd_event_num_t supplicant_events[] = { WLC_E_LINK, WLC_E_DEAUTH_IND, WLC_E_DISASSOC_IND, WLC_E_NONE };
+
+#ifdef COMPONENT_MBEDTLS
+#if ((MBEDTLS_VERSION_NUMBER >= 0x03000000) && (MBEDTLS_VERSION_MAJOR == 3))
+static volatile uint8_t is_phase2_thread_start=0;
+#endif
+#endif
 
 /******************************************************
  *              Function Definations
@@ -183,7 +189,7 @@ cy_rslt_t supplicant_tls_agent_finish_connect( supplicant_workspace_t* workspace
         key = mppe_keys + PMK_LEN;
         key_len = PMK_LEN;
     }
-#ifdef COMPONENT_CAT5
+#if defined(COMPONENT_55900) || defined(COMPONENT_PSE84)
     else if ( workspace->auth_type == CY_ENTERPRISE_SECURITY_AUTH_TYPE_WPA3_192BIT )
     {
         key = mppe_keys;
@@ -743,7 +749,7 @@ void supplicant_phase2_thread( cy_thread_arg_t arg )
     /* Wait until TLS is done or phase2 state is aborted */
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "Wait for TLS handshake to finish or abort\r\n");
 #ifdef COMPONENT_MBEDTLS
-    while ( workspace->tls_context->context.state != MBEDTLS_SSL_HANDSHAKE_OVER &&
+    while ( workspace->tls_context->context.MBEDTLS_MEMBER(state) != MBEDTLS_SSL_HANDSHAKE_OVER &&
             phase2_workspace->state.result != CY_RSLT_ENTERPRISE_SECURITY_SUPPLICANT_ABORTED )
 #elif defined (COMPONENT_NETXSECURE)
     while ( workspace->tls_context->tls_handshake_successful != true &&
@@ -793,6 +799,11 @@ void supplicant_phase2_thread( cy_thread_arg_t arg )
     }
     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_INFO, "supplicant_phase2_thread end\r\n");
 
+#ifdef COMPONENT_MBEDTLS
+#if ((MBEDTLS_VERSION_NUMBER >= 0x03000000) && (MBEDTLS_VERSION_MAJOR == 3))
+    is_phase2_thread_start = 0;
+#endif
+#endif
     cy_rtos_exit_thread();
 }
 
@@ -1018,9 +1029,22 @@ cy_rslt_t supplicant_process_event(supplicant_workspace_t* workspace, supplicant
             CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_DEBUG, "Supplicant event packet to send\r\n");
             supplicant_send_eap_tls_fragment( workspace, message->data.packet );
 
+#ifdef COMPONENT_MBEDTLS
+#if ((MBEDTLS_VERSION_NUMBER >= 0x03000000) && (MBEDTLS_VERSION_MAJOR == 3))
+            if(is_phase2_thread_start == 1)
+            {
+                break;
+            }
+#endif
+#endif
+
             if ( workspace->eap_type == CY_ENTERPRISE_SECURITY_EAP_TYPE_PEAP  &&
 #ifdef COMPONENT_MBEDTLS
-                    ( workspace->tls_context->context.state  >= MBEDTLS_SSL_CLIENT_FINISHED )
+#ifdef MBEDTLS_SSL_PROTO_TLS1_3
+                    ( workspace->tls_context->context.MBEDTLS_MEMBER(state)  >= MBEDTLS_SSL_HANDSHAKE_OVER )
+#else
+                    ( workspace->tls_context->context.MBEDTLS_MEMBER(state)  >= MBEDTLS_SSL_CLIENT_FINISHED )
+#endif
 #elif defined (COMPONENT_NETXSECURE)
                     ( workspace->tls_context->context.nx_secure_tls_client_state == NX_SECURE_TLS_CLIENT_STATE_SERVERHELLO_DONE  ||
                       workspace->tls_context->context.nx_secure_tls_client_state == NX_SECURE_TLS_CLIENT_STATE_HANDSHAKE_FINISHED )
@@ -1035,6 +1059,11 @@ cy_rslt_t supplicant_process_event(supplicant_workspace_t* workspace, supplicant
                 {
                     CY_SUPPLICANT_PROCESS_ET_INFO(CYLF_MIDDLEWARE, CY_LOG_ERR, "Supplicant PEAP failed to start\r\n");
                 }
+#ifdef COMPONENT_MBEDTLS
+#if ((MBEDTLS_VERSION_NUMBER >= 0x03000000) && (MBEDTLS_VERSION_MAJOR == 3))
+                is_phase2_thread_start = 1;
+#endif
+#endif
             }
             break;
 
