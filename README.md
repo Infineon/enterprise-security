@@ -12,7 +12,7 @@ This section provides details on the list of enterprise security Wi-Fi features 
 * Supports TLS session (session ID based) resumption
 * Supports 'PEAP Fast reconnect' (applicable only for PEAP protocol)
 * Supports roaming across APs in the enterprise network (vanilla roaming)
-* Supports TLS versions 1.0, 1.1, and 1.2
+* Supports TLS versions 1.0, 1.1, 1.2 and 1.3
 
 **Note**: Deviations for **ThreadX** :
 * Does not support TLS session resumption.
@@ -25,8 +25,6 @@ This section provides details on the list of enterprise security Wi-Fi features 
 * WPA3 Transition
 * WPA3 Enterprise only
 * WPA3 192Bit
-
-**Note**: WPA3 Enterprise Modes are supported for ThreadX only.
 
 ## Supported Frameworks
 

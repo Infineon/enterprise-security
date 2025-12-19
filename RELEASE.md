@@ -5,6 +5,9 @@ Refer to [README.md](./README.md) for a complete description of the enterprise s
 
 ## Changelog
 
+### v3.4.0
+* Enabled WPA3-192bit enterprise support for PSOC&trade; Edge E84 (PSE84) platform.
+
 ### v3.3.0
 * Added support for PSOC&trade; Edge E84 (PSE84) platform.
 
