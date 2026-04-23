@@ -85,17 +85,17 @@ To pull wifi-core-freertos-lwip-mbedtls create the following *.mtb* file in deps
 
 ### ThreadX, NetX Duo, and NetX Secure
 
-* To use enterprise-security library with Wi-Fi kits on ThreadX, NetxDuo, and NetxSecure combination, the application should pull wifi-core-threadx-netxduo-netxsecure library which will internall pull all dependent modules except nx-secure-wpa3.
+* To use enterprise-security library with Wi-Fi kits on ThreadX, NetxDuo, and NetxSecure combination, the application should pull wifi-core-threadx-cat5 library which will internall pull all dependent modules except nx-secure-wpa3.
 
-    * To pull wifi-core-threadx-netxduo-netxsecure create the following *.mtb* file in deps folder.
-      *wifi-core-threadx-netxduo-netxsecure.mtb:*
-      `mtb://wifi-core-threadx-netxduo-netxsecure#latest-v1.X#$$ASSET_REPO$$/wifi-core-threadx-netxduo-netxsecure/latest-v1.X`
+    * To pull wifi-core-threadx-cat5 create the following *.mtb* file in deps folder.
+      *wifi-core-threadx-cat5.mtb:*
+      `mtb://wifi-core-threadx-cat5#latest-v1.X#$$ASSET_REPO$$/wifi-core-threadx-cat5/latest-v1.X`
 
     * To pull nx-secure-wpa3 create the following *.mtb* file in deps folder.
       *nx-secure-wpa3.mtb:*
       `mtb://nx-secure-wpa3#latest-v1.X#$$ASSET_REPO$$/nx-secure-wpa3/latest-v1.X`
 
-* A set of pre-defined configuration files is bundled in wifi-core-threadx-netxduo-netxsecure library for Wi-Fi kits. The developer is expected to review the configuration and make adjustments.
+* A set of pre-defined configuration files is bundled in wifi-core-threadx-cat5 library for Wi-Fi kits. The developer is expected to review the configuration and make adjustments.
 
     1. Define the following COMPONENTS in the application's Makefile for the Enterprise Security library.
     ```
