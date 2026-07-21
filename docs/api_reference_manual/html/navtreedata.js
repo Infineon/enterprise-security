@@ -25,14 +25,13 @@
 var NAVTREE =
 [
   [ "Enterprise Security Library", "index.html", [
-    [ "Overview", "index.html", null ],
-    [ "API Reference", "modules.html", "modules" ]
+    [ "Overview", "index.html", null ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"class_enterprise_security.html"
+"index.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

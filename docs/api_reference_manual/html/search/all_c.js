@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['_7eenterprisesecurity_0',['~EnterpriseSecurity',['../class_enterprise_security.html#a6a9ba816cc943b32fa53d5208ac5e851',1,'EnterpriseSecurity']]]
+  ['netxduo_20and_20netxsecure_0',['Threadx, NetxDuo, and NetxSecure',['../index.html#quick_start_threadx_netxduo_netxsecure',1,'']]],
+  ['netxsecure_1',['Threadx, NetxDuo, and NetxSecure',['../index.html#quick_start_threadx_netxduo_netxsecure',1,'']]]
 ];

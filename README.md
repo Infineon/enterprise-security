@@ -63,7 +63,7 @@ To pull wifi-core-freertos-lwip-mbedtls create the following *.mtb* file in deps
   **Note**: For KIT_PSE84_EVAL_EPC2 use the following *.mtb* file in deps folder.
 
    - *wifi-core-freertos-lwip-mbedtls.mtb:*
-      `https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls#latest-v3.X#$$ASSET_REPO$$/wifi-core-freertos-lwip-mbedtls/latest-v3.X`
+      `https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls#release-v3.1.1#$$ASSET_REPO$$/wifi-core-freertos-lwip-mbedtls/release-v3.1.1`
 
 * A set of pre-defined configuration files for FreeRTOS, lwIP, and Mbed TLS combination is bundled in wifi-core-freertos-lwip-mbedtls library for Wi-Fi kits. The developer is expected to review the configuration and make adjustments.
 

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['macros_0',['Macros',['../group__enterprise__security__defines.html',1,'']]]
+  ['interface_0',['Class Interface',['../group__enterprise__security__class.html',1,'']]]
 ];

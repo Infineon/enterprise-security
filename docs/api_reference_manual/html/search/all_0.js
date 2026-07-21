@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['auth_5ftype_0',['auth_type',['../structcy__enterprise__security__parameters__t.html#aa415fbc0e707d0f1d303acfeb5fe30d1',1,'cy_enterprise_security_parameters_t']]]
+  ['1_3a_20enterprise_20security_20join_20and_20leave_20eap_20tls_0',['Code Snippet 1: Enterprise Security Join and Leave (EAP-TLS)',['../index.html#snip1',1,'']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['structures_0',['Structures',['../group__enterprise__security__struct.html',1,'']]]
+  ['library_0',['Enterprise Security library',['../group__enterprise__security.html',1,'']]]
 ];

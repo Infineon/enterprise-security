@@ -5,6 +5,9 @@ Refer to [README.md](./README.md) for a complete description of the enterprise s
 
 ## Changelog
 
+### v3.4.2
+* Documentation Update.
+
 ### v3.4.1
 * Documentation update.
 

@@ -156,7 +156,7 @@ typedef struct cy_supplicant_instance_s
     /* For internal management */
     cy_tls_context_t*                   tls_context;                                                     /**<  TLS context */
     cy_supplicant_core_t                supplicant_core;                                                 /**<  Supplicant core (for book keeping) */
-    cy_tls_identity_t*                  tls_identity;                                                    /**<  Identity for the secure connection */
+    cy_tls_identity_t*                  tls_identity;                                                     /**<  Identity for the secure connection */
     whd_interface_t                     interface;                                                       /**<  WHD interface */
     cy_tls_session_t                    saved_session;                                                   /**<  Used during session resumption case */
 } cy_supplicant_instance_t;
